@@ -14,9 +14,6 @@ from kivy.properties import ObjectProperty, NumericProperty
 
 import math
 
-# Config.set('graphics', 'width', '1650')
-# Config.set('graphics', 'height', '1050')
-# Config.write()
 
 class LazySusan(Widget): 
     angle = NumericProperty(0) 
@@ -59,6 +56,9 @@ class KJMethodApp(App):
 		scene = KJMethod()
 		return scene
 
+Config.set('graphics', 'width', '1280')
+Config.set('graphics', 'height', '800')
+Config.write()
 Window.fullscreen = True
 if __name__ == '__main__':
  	KJMethodApp().run()
