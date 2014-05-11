@@ -1,3 +1,5 @@
+__version__='0.1.0'
+
 import kivy
 kivy.require('1.8.0')
 
@@ -7,12 +9,12 @@ from kivy.core.window import Window
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
 from kivy.uix.floatlayout import FloatLayout
-# from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.scatter import Scatter
 from kivy.uix.vkeyboard import VKeyboard
 from kivy.uix.textinput import TextInput
+from kivy.uix.screenmanager import Screen, ScreenManager, SlideTransition
 from kivy.properties import ObjectProperty, NumericProperty, ListProperty
 from functools import partial
 from kivy.base import EventLoop
@@ -63,15 +65,7 @@ class Menu(Widget):
         self.remove_widget(widget)
 
     def change_view(self, widget, *args):
-        pass
-        # self.root.goto_screen("sort") 
-
-    # def add_label(self, widget, *args):
-    #     s = Scatter()
-    #     inpt = TextInput(size_hint=(None, None), size=(100, 50), pos=(self.parent.width/2, self.parent.height/2))
-    #     s.add_widget(inpt)
-    #     self.add_widget(s)
-    #     self.close_menu
+        self.root.sm.current = 'sort'
 
     def __init__(self, **kwargs):
         super(Menu, self).__init__(**kwargs)
@@ -82,14 +76,6 @@ class Menu(Widget):
 class LazySusan(Widget): 
     lazy_angle = NumericProperty(0) 
     tmp = None
-
-    def __init__(self, **kwargs):
-        super(LazySusan,self).__init__(**kwargs)
-        # self.canvas_position.append(Window.center[0])
-        # self.canvas_position.append(Window.center[1])
-        # self.label_position.append(Window.center[0])
-        # self.label_position.append(Window.center[1])
-        # self.show_area(color=(0.7, 0.7, 0.3), alpha=0.8, group='after')
 
     def on_touch_down(self, touch):
         if Widget(pos=self.pos, size=self.size).collide_point(touch.pos[0], touch.pos[1]):
@@ -116,7 +102,7 @@ class KJMethod(FloatLayout):
         # KeyboardListener().setCallback(self.key_up)
         s.add_widget(inpt)
         print self
-        self.parent.add_widget(s,0)
+        self.parent.add_widget(s)
 
     def request_vkeyboard(self):
         keyboard = Window.request_keyboard(self._keyboard_close, self)
@@ -136,9 +122,9 @@ class KJMethod(FloatLayout):
     def key_up(self, keyboard, keycode, text, modifiers):
         self.label.text = self.label.text + keycode[1]
 
-    def __init__(self, **kwargs):
-        super(KJMethod, self).__init__(**kwargs)
-        self._keyboard = None
+    # def __init__(self, **kwargs):
+    #     super(KJMethod, self).__init__(**kwargs)
+    #     self._keyboard = None
 
 	# def open_input(self):
 	# 	s = Scatter()
@@ -149,22 +135,24 @@ class KJMethod(FloatLayout):
 class KJSort(FloatLayout): 
     pass
 
+class KJMethodScreen(Screen):
+    pass
+
+class KJSortScreen(Screen):
+    pass
+
+
 class KJMethodApp(App):
-	# def build(self):
-	# 	scene = KJMethod()
-	# 	return scene
+    sm = ObjectProperty(ScreenManager(transition=SlideTransition()))
 
     def build(self):
-        self.screens = {}
-        self.screens["editor"] = KJMethod(app=self)
-        self.screens["sort"] = KJSort(app=self)
-        self.root = FloatLayout()
-        self.goto_screen("editor")
-        return self.root
+        self.sm.add_widget(KJMethodScreen(name="method"))
+        self.sm.add_widget(KJSortScreen(name="sort"))
+        return self.sm
  
-    def goto_screen(self, screen_name):
-        self.root.clear_widgets()
-        self.root.add_widget(self.screens[screen_name])
+    # def goto_screen(self, screen_name):
+    #     self.root.clear_widgets()
+    #     self.root.add_widget(self.screens[screen_name])
 
 Config.set('graphics', 'width', '1280')
 Config.set('graphics', 'height', '800')

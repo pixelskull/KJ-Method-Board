@@ -1,37 +1,50 @@
 #:kivy 1.8.0
 
-<KJMethod>:
-	canvas.before:
-		Color: 
-			rgb: 0,0,0 
-		Rectangle: 
-			size: root.size
-	Menu:
-		size_hint: None, None
-	LazySusan:
-		size_hint: None, None
-		size: 0.166*root.size[0], 0.166*root.size[0]
-		pos: root.center[0]-(self.size[0]/2), root.center[1]-(self.size[1]/2)
-		canvas.before: 
-			PushMatrix
-			Rotate: 
-				angle: self.lazy_angle
-				origin: self.center
+<KJMethodScreen>:
+	KJMethod: 
+		canvas.before:
 			Color: 
-				rgba: 1,1,1,0.2
-			Ellipse: 
-				size: self.size
-				pos: self.pos
-		canvas.after:
-			PopMatrix
+				rgb: 0,0,0 
+			Rectangle: 
+				size: root.size
+		Menu:
+			size_hint: None, None
+		LazySusan:
+			size_hint: None, None
+			size: 0.166*root.size[0], 0.166*root.size[0]
+			pos: root.center[0]-(self.size[0]/2), root.center[1]-(self.size[1]/2)
+			canvas.before: 
+				PushMatrix
+				Rotate: 
+					angle: self.lazy_angle
+					origin: self.center
+				Color: 
+					rgba: 1,1,1,0.2
+				Ellipse: 
+					size: self.size
+					pos: self.pos
+			canvas.after:
+				PopMatrix
+			Label:
+	        	id: label_widget
+	        	text: 'widget'
+	        	pos: 0.5*root.size[0], 0.5*root.size[1]
+	        	size: self.texture_size
+	        	canvas:
+	        		Color: 
+	        			rgba: 1,1,1,0.2
+	        		Rectangle: 
+	        			pos: self.pos
+	        			size: self.size
+
+<KJSortScreen>:
+	KJSort:
 		Label:
-        	id: label_widget
-        	text: 'widget'
-        	pos: 0.5*root.size[0], 0.5*root.size[1]
-        	size: self.texture_size
-        	canvas:
-        		Color: 
-        			rgba: 1,1,1,0.2
-        		Rectangle: 
-        			pos: self.pos
-        			size: self.size
+	    	id: label_widget
+	    	text: 'das ist der 2te Screen'
+	    	size: self.texture_size
+	    	canvas:
+	    		Color: 
+	    			rgba: 1,1,1,0.2
+	    		Rectangle: 
+	    			size: self.size
