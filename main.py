@@ -108,7 +108,6 @@ class EditableLabel(Label):
 
     edit = BooleanProperty(False)
     move = BooleanProperty(False)
-
     textinput = ObjectProperty(None, allownone=True)
 
     def on_touch_down(self, touch):
@@ -139,7 +138,6 @@ class EditableLabel(Label):
         else:
             self.add_widget(self.textinput) 
 
-
     def on_text_validate(self, instance):
         self.text = instance.text
         self.edit = False
@@ -160,7 +158,7 @@ class EditableLabel(Label):
 class KJMethod(FloatLayout):
 
     def add_label(self, widget, *args): 
-        s = Scatter(size_hint=(None,None), size=(100,50), pos=(self.parent.width/2, self.parent.height/2))
+        s = Scatter(size_hint=(None,None), size=(100,50), pos=widget.pos)#(self.parent.width/2, self.parent.height/2))
         inpt = EditableLabel(text="hallo", size_hint=(None, None), size=(100, 50), keyboard_mode='managed')
         # inpt.bind(on_touch_up=show_keyboard())
         # KeyboardListener().setCallback(self.key_up)
@@ -184,6 +182,7 @@ class KJSortScreen(Screen):
 
 
 class KJMethodApp(App):
+
     sm = ObjectProperty(ScreenManager(transition=SlideTransition()))
 
     def build(self):
