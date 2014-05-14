@@ -152,7 +152,6 @@ class EditableLabel(Label):
 
     def __init__(self, **kwargs):
         super(EditableLabel, self).__init__(**kwargs)
-        self.show_area(color='green', alpha=0.5, group=None)
 
 
 class KJMethod(FloatLayout):
