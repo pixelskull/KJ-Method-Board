@@ -151,6 +151,7 @@ class EditableLabel(Label):
         super(EditableLabel, self).__init__(**kwargs)
 
 
+
 class KJMethod(FloatLayout):
 
     def add_label(self, widget, *args): 
@@ -160,6 +161,18 @@ class KJMethod(FloatLayout):
         # KeyboardListener().setCallback(self.key_up)
         s.add_widget(inpt)
         self.add_widget(s)
+        update = partial(self.update_scatter, s)
+        Clock.schedule_interval(update, 1.0/60.0)
+
+    def update_scatter(self, s, dt):
+        # print s.top
+        if (s.pos[1] < 0) or (s.top > Window.height) or (s.pos[0] < 0) or (s.right > Window.width):
+            # s.child.show_area(color='red', alpha=0.5, group=None)
+            callback = partial(self.remove_widget_callback, s)
+            Clock.schedule_once(callback, 3.0)
+
+    def remove_widget_callback(self, widget, *args):
+        self.remove_widget(widget)
 
     def __init__(self, **kwargs):
         super(KJMethod, self).__init__(**kwargs)
