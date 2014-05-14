@@ -118,9 +118,6 @@ class EditableLabel(Label):
     def on_touch_move(self, touch): 
         self.textinput.focus = False 
 
-    def on_touch_up(self, touch):
-        self.edit = False 
-
     def on_edit(self, instance, value):
         if not value:
             if self.textinput:
