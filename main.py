@@ -142,7 +142,7 @@ class EditableLabel(Label):
             self.text = instance.text
             self.edit = False
             self.textinput.hide_keyboard() 
-            Singelton(Card).addCard(self.text) 
+            Singelton(Card).add_card(self.text) 
         else:
             self.textinput.show_keyboard()
 
@@ -154,12 +154,12 @@ class Card():
     _instance = None
     cards = []
 
-    def addCard(self, label): 
+    def add_card(self, label): 
         if label not in self.cards:
             self.cards.append(label)
         print self.cards
 
-    def removeCard(self, label):
+    def remove_card(self, label):
         if label in self.cards:  
             self.cards.remove(label)
         print self.cards
@@ -192,7 +192,7 @@ class KJMethod(FloatLayout):
 
     def remove_widget_callback(self, widget, *args):
         if self.delete_scatter is True:
-            Singelton(Card).removeCard(widget.children[0].text)
+            Singelton(Card).remove_card(widget.children[0].text)
             self.remove_widget(widget)
             self.delete_scatter = False
 
@@ -202,7 +202,23 @@ class KJMethod(FloatLayout):
 
 
 class KJSort(FloatLayout): 
-    pass
+    labelset = False
+
+    def add_labels(self, widget, **args): 
+        if self.labelset is False:
+            for label in Singelton(Card).cards:
+                s = Scatter(size_hint=(None,None), size=(100,50))
+                inpt = Label(text=label, size_hint=(None,None), size=(100,50), keyboard_mode='managed')
+                s.add_widget(inpt)
+                self.add_widget(s)
+                self.labelset = True
+
+    
+    def __init__(self, **kwargs): 
+        super(KJSort, self).__init__(**kwargs)
+        update = self.add_labels
+        Clock.schedule_interval(update, 1.0/60.0)
+
 
 
 class KJMethodScreen(Screen):
@@ -214,7 +230,6 @@ class KJSortScreen(Screen):
 
 
 class KJMethodApp(App):
-
     sm = ObjectProperty(ScreenManager(transition=SlideTransition()))
 
     def build(self):
