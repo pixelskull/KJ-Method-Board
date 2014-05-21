@@ -28,7 +28,6 @@ import os
 import kwad
 
 class Menu(Widget): 
-
     touches = []
     app = None;
 
