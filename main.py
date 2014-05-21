@@ -27,10 +27,13 @@ import os
 
 import kwad
 
+
+# implementation for Menu widget
 class Menu(Widget): 
     touches = []
     app = None;
 
+    # save each touch in list for detecting two-finger-touch 
     def save_touch_down(self, instance, touch):
         touch.ud['menu_event'] = None
         if len(self.touches) >= 1:
@@ -41,12 +44,14 @@ class Menu(Widget):
                     touch.ud['menu_event'] = callback
         self.touches.append(touch)
 
+    # delete touch when finger is lifted 
     def remove_touch_down(self, instance, touch):
         if touch in self.touches:
             if touch.ud['menu_event'] is not None:
                 Clock.unschedule(touch.ud['menu_event'])
             self.touches.remove(touch)
 
+    # method for opening the menu (create menu widget)
     def open_menu(self, touch, *args): 
         menu = BoxLayout(
             size_hint=(None, None),
@@ -61,12 +66,15 @@ class Menu(Widget):
         callback = partial(self.close_menu, menu)
         Clock.schedule_once(callback, 2.5)
 
+    # method for closing menu
     def close_menu(self, widget, *args):
         self.parent.remove_widget(widget)
 
+    # method for changeing view 
     def change_view(self, widget, *args):
         self.app.sm.current = 'sort'
 
+    # initialisation method
     def __init__(self, **kwargs): #, parent
         super(Menu, self).__init__(**kwargs)
         self.app = KJMethodApp.get_running_app()
@@ -75,12 +83,13 @@ class Menu(Widget):
         self.bind(on_touch_move=self.remove_touch_down)
 
 
+# class for implementing circle widget in middel of first screen 
 class LazySusan(Widget): 
     lazy_angle = NumericProperty(0) 
     tmp = None
 
+    # called when finger touch is detected 
     def on_touch_down(self, touch):
-        
         if Widget(pos=self.pos, size=self.size).collide_point(touch.pos[0], touch.pos[1]):
             y = (touch.y - self.center[1])
             x = (touch.x - self.center[0])
@@ -88,8 +97,8 @@ class LazySusan(Widget):
             self.prev_angle = calc if calc > 0 else 360+calc
             self.tmp = self.lazy_angle
 
+    # called when finger is moving 
     def on_touch_move(self, touch):
-        
         if Widget(pos=self.pos, size=self.size).collide_point(touch.pos[0], touch.pos[1]) and self.tmp is not None:
             y = (touch.y - self.center[1])
             x = (touch.x - self.center[0])
@@ -97,24 +106,25 @@ class LazySusan(Widget):
             new_angle = calc if calc > 0 else 360+calc
             self.lazy_angle = self.tmp + (new_angle-self.prev_angle)%360
 
-    def __init__(self, **kwargs):
-        super(LazySusan, self).__init__(**kwargs)
 
-
+# Class for label that is editable 
 class EditableLabel(Label):
     edit = BooleanProperty(False)
     move = BooleanProperty(False)
     textinput = ObjectProperty(None, allownone=True)
 
+    # called when touch is detected 
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos) and not self.edit:
             self.edit = True
         return super(EditableLabel, self).on_touch_down(touch)
 
+    # called when touch is moving 
     def on_touch_move(self, touch): 
         self.textinput.focus = False 
         self.parent.parent.delete_scatter = False
 
+    # called when label is edited 
     def on_edit(self, instance, value):
         if not value:
             if self.textinput:
@@ -128,14 +138,15 @@ class EditableLabel(Label):
             self.bind(pos=t.setter('pos'), size=t.setter('size'))
             self.add_widget(self.textinput)
             self.textinput.bind(on_text_validate=self.on_text_validate, focus=self.on_text_focus)
-
         else:
             self.add_widget(self.textinput) 
 
+    # called when text is entered 
     def on_text_validate(self, instance):
         self.text = instance.text
         self.edit = False
 
+    # called when label has focus (touch on label)
     def on_text_focus(self, instance, focus):
         if focus is False or self.edit is False:
             self.text = instance.text
@@ -145,33 +156,36 @@ class EditableLabel(Label):
         else:
             self.textinput.show_keyboard()
 
-    def __init__(self, **kwargs):
-        super(EditableLabel, self).__init__(**kwargs)
 
-
+# dummy implementation for saving Cards 
 class Card():
     _instance = None
     cards = []
 
+    # add a card to cards-list 
     def add_card(self, label): 
         if label not in self.cards:
             self.cards.append(label)
         print self.cards
 
+    # removes a card to cards-list 
     def remove_card(self, label):
         if label in self.cards:  
             self.cards.remove(label)
         print self.cards
 
+# method vor calling a single instance of a Class 
 def Singelton(instanceClass): 
     if not instanceClass._instance: 
         instanceClass._instance = instanceClass()
     return instanceClass._instance
 
 
+# implementation Class for the first Screen 
 class KJMethod(FloatLayout):
     delete_scatter = BooleanProperty(False)
 
+    # add a label to KJMethod Screen 
     def add_label(self, widget, *args): 
         s = Scatter(size_hint=(None,None), size=(100,50), pos=widget.pos)
         #(self.parent.width/2, self.parent.height/2))
@@ -183,12 +197,14 @@ class KJMethod(FloatLayout):
         update = partial(self.update_scatter, s)
         Clock.schedule_interval(update, 1.0/60.0)
 
+    # callback called for checking delete option 
     def update_scatter(self, s, dt):
         if (s.pos[1] < 0) or (s.top > Window.height) or (s.pos[0] < 0) or (s.right > Window.width):
             self.delete_scatter = True
             callback = partial(self.remove_widget_callback, s)
             Clock.schedule_once(callback, 3.0)
 
+    # removes (delete) an scatter 
     def remove_widget_callback(self, widget, *args):
         if self.delete_scatter is True:
             Singelton(Card).remove_card(widget.children[0].text)
@@ -196,13 +212,11 @@ class KJMethod(FloatLayout):
             self.delete_scatter = False
 
 
-    def __init__(self, **kwargs):
-        super(KJMethod, self).__init__(**kwargs)
-
-
+# implementation Class for the second Screen
 class KJSort(FloatLayout): 
     labelset = False
 
+    # method for adding all cards to second screen  (at the moment only one label ist added)
     def add_labels(self, widget, **args): 
         if self.labelset is False:
             for label in Singelton(Card).cards:
@@ -212,36 +226,38 @@ class KJSort(FloatLayout):
                 self.add_widget(s)
                 self.labelset = True
 
-    
+    # init method
     def __init__(self, **kwargs): 
         super(KJSort, self).__init__(**kwargs)
         update = self.add_labels
         Clock.schedule_interval(update, 1.0/60.0)
 
 
-
+# Dummy Class for the first Screen (definition in .kv file)
 class KJMethodScreen(Screen):
     pass
 
-
+# Dummy Class for the second Screen (definition in .kv file)
 class KJSortScreen(Screen):
     pass
 
-
+#basic Class, root for this Application
 class KJMethodApp(App):
     sm = ObjectProperty(ScreenManager(transition=SlideTransition()))
 
+    # default build method
     def build(self):
         self.sm.add_widget(KJMethodScreen(name="method"))
         self.sm.add_widget(KJSortScreen(name="sort"))
         return self.sm
 
-
+#resolution settings
 Config.set('graphics', 'width', '1280')
 Config.set('graphics', 'height', '800')
 Config.write()
 # Window.fullscreen = True
 
+#debug stuff 
 kwad.attach()
 if __name__ == '__main__':
  	KJMethodApp().run()
