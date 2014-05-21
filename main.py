@@ -83,7 +83,6 @@ class LazySusan(Widget):
     def on_touch_down(self, touch):
         
         if Widget(pos=self.pos, size=self.size).collide_point(touch.pos[0], touch.pos[1]):
-            print('lazy touch down')
             y = (touch.y - self.center[1])
             x = (touch.x - self.center[0])
             calc = math.degrees(math.atan2(y, x))
@@ -93,7 +92,6 @@ class LazySusan(Widget):
     def on_touch_move(self, touch):
         
         if Widget(pos=self.pos, size=self.size).collide_point(touch.pos[0], touch.pos[1]) and self.tmp is not None:
-            print('lazy touch move')
             y = (touch.y - self.center[1])
             x = (touch.x - self.center[0])
             calc = math.degrees(math.atan2(y, x))
@@ -105,7 +103,6 @@ class LazySusan(Widget):
 
 
 class EditableLabel(Label):
-
     edit = BooleanProperty(False)
     move = BooleanProperty(False)
     textinput = ObjectProperty(None, allownone=True)
@@ -117,6 +114,7 @@ class EditableLabel(Label):
 
     def on_touch_move(self, touch): 
         self.textinput.focus = False 
+        self.parent.parent.delete_scatter = False
 
     def on_edit(self, instance, value):
         if not value:
@@ -143,7 +141,8 @@ class EditableLabel(Label):
         if focus is False or self.edit is False:
             self.text = instance.text
             self.edit = False
-            self.textinput.hide_keyboard()  
+            self.textinput.hide_keyboard() 
+            Singelton(Card).addCard(self.text) 
         else:
             self.textinput.show_keyboard()
 
@@ -151,11 +150,32 @@ class EditableLabel(Label):
         super(EditableLabel, self).__init__(**kwargs)
 
 
+class Card():
+    _instance = None
+    cards = []
+
+    def addCard(self, label): 
+        if label not in self.cards:
+            self.cards.append(label)
+        print self.cards
+
+    def removeCard(self, label):
+        if label in self.cards:  
+            self.cards.remove(label)
+        print self.cards
+
+def Singelton(instanceClass): 
+    if not instanceClass._instance: 
+        instanceClass._instance = instanceClass()
+    return instanceClass._instance
+
 
 class KJMethod(FloatLayout):
+    delete_scatter = BooleanProperty(False)
 
     def add_label(self, widget, *args): 
-        s = Scatter(size_hint=(None,None), size=(100,50), pos=widget.pos)#(self.parent.width/2, self.parent.height/2))
+        s = Scatter(size_hint=(None,None), size=(100,50), pos=widget.pos)
+        #(self.parent.width/2, self.parent.height/2))
         inpt = EditableLabel(text="hallo", size_hint=(None, None), size=(100, 50), keyboard_mode='managed')
         # inpt.bind(on_touch_up=show_keyboard())
         # KeyboardListener().setCallback(self.key_up)
@@ -165,14 +185,17 @@ class KJMethod(FloatLayout):
         Clock.schedule_interval(update, 1.0/60.0)
 
     def update_scatter(self, s, dt):
-        # print s.top
         if (s.pos[1] < 0) or (s.top > Window.height) or (s.pos[0] < 0) or (s.right > Window.width):
-            # s.child.show_area(color='red', alpha=0.5, group=None)
+            self.delete_scatter = True
             callback = partial(self.remove_widget_callback, s)
             Clock.schedule_once(callback, 3.0)
 
     def remove_widget_callback(self, widget, *args):
-        self.remove_widget(widget)
+        if self.delete_scatter is True:
+            Singelton(Card).removeCard(widget.children[0].text)
+            self.remove_widget(widget)
+            self.delete_scatter = False
+
 
     def __init__(self, **kwargs):
         super(KJMethod, self).__init__(**kwargs)
