@@ -232,7 +232,7 @@ class Card():
     # syncronising Cards with Json files 
     def sync_cards_withFiles(self, widget, *args):
         with open('lazy.json', 'w') as outfile: 
-            json.dump(self.cards['default'][-10:], outfile);
+            json.dump(self.cards['default'][-5:], outfile);
         if self.cards_changed is True:
             #print('syncronising')             
             main_json = open('main.json', 'r+')
