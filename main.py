@@ -340,9 +340,9 @@ class KJSort(FloatLayout):
     _instance = None
     # method for adding all cards to second screen  (at the moment only one label ist added)
     def add_labels(self, widget, **args): 
-        if self.labelset is False:
+        if not self.labelset:
             #print Singelton(Card).cards
-            for label in Singleton(Card).cards:
+            for label in Singleton(Card).cards['default']:
                 #print label
                 s = Scatter(size_hint=(None,None), size=(100,50))
                 inpt = Label(text=label, size_hint=(None,None), size=(100,50), keyboard_mode='managed')
