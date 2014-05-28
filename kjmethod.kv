@@ -11,6 +11,11 @@
 			size_hint: None, None
 			size: root.size
 		LazySusan:
+			label1: label1
+			label2: label2
+			label3: label2 
+			label4: label4 
+			label5: label5
 			size_hint: None, None
 			size: 0.166*root.size[0], 0.166*root.size[0]
 			pos: root.center[0]-(self.size[0]/2), root.center[1]-(self.size[1]/2)
@@ -27,16 +32,55 @@
 			canvas.after:
 				PopMatrix
 			Label:
-	        	id: label_widget
-	        	text: 'widget'
-	        	pos: 0.5*root.size[0], 0.5*root.size[1]
-	        	size: self.texture_size
-	        	canvas:
-	        		Color: 
-	        			rgba: 1,1,1,0.2
-	        		Rectangle: 
-	        			pos: self.pos
-	        			size: self.size
+				id: label1
+				pos: self.parent.top, self.parent.top ##pos: 0.5*root.size[0], 0.5*root.size[1]
+				size: self.texture_size
+				canvas:
+					Color: 
+						rgba: 1,1,1,0.2
+					Rectangle: 
+						pos: self.pos
+						size: self.size
+			Label:
+				id: label2
+				pos: label1.pos[0], label1.pos[1]-20
+				size: self.texture_size
+				canvas:
+					Color: 
+						rgba: 1,1,1,0.2
+					Rectangle: 
+						pos: self.pos
+						size: self.size
+			Label:
+				id: label3
+				pos: label2.pos[0], label2.pos[1]-20
+				size: self.texture_size
+				canvas:
+					Color: 
+						rgba: 1,1,1,0.2
+					Rectangle: 
+						pos: self.pos
+						size: self.size
+			Label:
+				id: label4
+				pos: label3.pos[0], label3.pos[1]-20
+				size: self.texture_size
+				canvas:
+					Color: 
+						rgba: 1,1,1,0.2
+					Rectangle: 
+						pos: self.pos
+						size: self.size
+			Label:
+				id: label5
+				pos: label4.pos[0], label4.pos[1]-20
+				size: self.texture_size
+				canvas:
+					Color: 
+						rgba: 1,1,1,0.2
+					Rectangle: 
+						pos: self.pos
+						size: self.size
 
 <KJSortScreen>:
 	KJSort:
