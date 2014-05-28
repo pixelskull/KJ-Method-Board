@@ -26,6 +26,7 @@ import math
 import os
 import os.path
 import json
+from random import randint
 
 import kwad
 
@@ -344,7 +345,9 @@ class KJSort(FloatLayout):
             #print Singelton(Card).cards
             for label in Singleton(Card).cards['default']:
                 #print label
-                s = Scatter(size_hint=(None,None), size=(100,50))
+                s = Scatter(size_hint=(None,None), 
+                        size=(100,50), 
+                        pos=(randint(10,Window.width-10), randint(10,Window.height-10)))
                 inpt = Label(text=label, size_hint=(None,None), size=(100,50), keyboard_mode='managed')
                 s.add_widget(inpt)
                 self.add_widget(s)
