@@ -272,6 +272,8 @@ def Singleton(instanceClass):
 class KJMethod(FloatLayout):
     delete_scatter = BooleanProperty(False)
 
+    delete_callback = None
+
     # add a label to KJMethod Screen 
     def add_label(self, widget, *args): 
         s = Scatter(size_hint=(None,None), size=(100,50), pos=widget.pos)
@@ -287,19 +289,18 @@ class KJMethod(FloatLayout):
     # callback called for checking delete option 
     def update_scatter(self, s, dt):
         if (s.pos[1] < 0) or (s.top > Window.height) or (s.pos[0] < 0) or (s.right > Window.width):
-            # s.children[0].color(1,0,0,1)
             self.delete_scatter = True
-            callback = partial(self.remove_widget_callback, s)
-            Clock.schedule_once(callback, 3.0)
+            self.delete_callback = partial(self.remove_widget_callback, s)
+            Clock.schedule_once(self.delete_callback, 3.0)
         for child in self.children:
             if (type(child) is LazySusan):
-                if child.collide_widget(s):
-                    self.delete_scatter = True
-                    # print s.children[0]
-                    # s.children[0].color(0,1,0,1)
+                if s.collide_widget(child):
+                    print 'delete_scatter', self.delete_scatter
+                    # self.delete_scatter = True
                     Singleton(Card).add_card(s.children[0].text)
-                    callback = partial(self.remove_widget_callback, s)
-                    Clock.schedule_once(callback, 1.5)
+                    s.create_property('clock_timer')
+                    self.delete_callback = partial(self.remove_widget_only, s)
+                    Clock.schedule_once(self.delete_callback, 1.5)
                 # else: 
                 #     s.children[0].show_area(color='green', alpha=0.0, group=None)
                 #     self.delete_scatter = False
@@ -307,11 +308,16 @@ class KJMethod(FloatLayout):
 
     # removes (delete) an scatter 
     def remove_widget_callback(self, widget, *args):
-        if self.delete_scatter is True:
-            # print widget.children[0]
-            Singleton(Card).remove_card(widget.children[0].text)
-            self.remove_widget(widget)
-            self.delete_scatter = False
+        # if self.delete_scatter:
+        Singleton(Card).remove_card(widget.children[0].text) 
+        self.remove_widget(widget)
+        self.delete_scatter = False
+
+    def remove_widget_only(self, widget, *args):
+        # if self.delete_scatter:
+        self.remove_widget(widget)
+        self.delete_scatter = False
+
 
     def __init__(self, **kwargs): 
         super(KJMethod, self).__init__(**kwargs)
@@ -336,7 +342,7 @@ class KJSort(FloatLayout):
     def add_labels(self, widget, **args): 
         if self.labelset is False:
             #print Singelton(Card).cards
-            for label in Singelton(Card).cards:
+            for label in Singleton(Card).cards:
                 #print label
                 s = Scatter(size_hint=(None,None), size=(100,50))
                 inpt = Label(text=label, size_hint=(None,None), size=(100,50), keyboard_mode='managed')
