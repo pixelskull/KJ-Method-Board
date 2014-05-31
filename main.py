@@ -219,7 +219,7 @@ class Card():
             if label is not '':
                 self.cards['default'].append(label)
                 self.cards_changed = True
-        print self.cards
+        # print self.cards
 
     # removes a card to cards-list 
     def remove_card(self, label):
@@ -227,7 +227,7 @@ class Card():
             if label is not '':  
                 self.cards['default'].remove(label)
                 self.cards_changed = True
-        print self.cards
+        # print self.cards
 
     # syncronising Cards with Json files 
     def sync_cards_withFiles(self, widget, *args):
@@ -269,6 +269,29 @@ def Singleton(instanceClass):
     return instanceClass._instance
 
 
+# Class for Stacks in Second Screen
+class Card_Stack(Widget):
+
+    def new_stack(self, card1, card2):
+        stack = BoxLayout(
+                    size_hint=(None, None), 
+                    orientation='vertical') 
+                    # pos=card1.pos)
+        stack.add_widget(card1)
+        stack.add_widget(card2)
+        self.add_widget(stack)
+
+    def add_card_to_stack(self, card):
+        self.add_widget(card)
+
+    def remove_card_from_stack(self, stack, card): 
+        stack.remove_widget(card)
+
+    def __init__(self, **kwargs): 
+        super(Card_Stack, self).__init__(**kwargs)
+        self.show_area(color='green', alpha=0.0, group=None)
+
+
 # implementation Class for the first Screen 
 class KJMethod(FloatLayout):
     delete_scatter = BooleanProperty(False)
@@ -296,7 +319,7 @@ class KJMethod(FloatLayout):
         for child in self.children:
             if (type(child) is LazySusan):
                 if s.collide_widget(child):
-                    print 'delete_scatter', self.delete_scatter
+                    # print 'delete_scatter', self.delete_scatter
                     # self.delete_scatter = True
                     Singleton(Card).add_card(s.children[0].text)
                     s.create_property('clock_timer')
@@ -319,7 +342,6 @@ class KJMethod(FloatLayout):
         self.remove_widget(widget)
         self.delete_scatter = False
 
-
     def __init__(self, **kwargs): 
         super(KJMethod, self).__init__(**kwargs)
         try:
@@ -332,26 +354,82 @@ class KJMethod(FloatLayout):
             open('lazy.json', 'w')
         except Exception, e:
             pass
-        
 
 
 # implementation Class for the second Screen
 class KJSort(FloatLayout): 
     labelset = True
     _instance = None
+
     # method for adding all cards to second screen  (at the moment only one label ist added)
     def add_labels(self, widget, **args): 
         if not self.labelset:
-            #print Singelton(Card).cards
             for label in Singleton(Card).cards['default']:
-                #print label
-                s = Scatter(size_hint=(None,None), 
+                s = Scatter(
+                        size_hint=(None,None), 
                         size=(100,50), 
-                        pos=(randint(10,Window.width-10), randint(10,Window.height-10)))
+                        pos=(randint(100,Window.width-100), randint(100,Window.height-100)))
                 inpt = Label(text=label, size_hint=(None,None), size=(100,50), keyboard_mode='managed')
                 s.add_widget(inpt)
                 self.add_widget(s)
                 self.labelset = True
+                update_scatter = partial(self.update_scatter, s)
+                Clock.schedule_interval(update_scatter, 0.1)
+
+    def update_scatter(self, s, dt):
+        for child in self.children: 
+            if s.collide_widget(child) and s is not child:
+                if (type(child) is Scatter) and (type(child.children[0]) is Label):
+                    print 'new_stack'
+                    stack = Card_Stack()
+                    stack.new_stack(
+                                Label(text=s.children[0].text, pos=s.pos),
+                                Label(text=child.children[0].text, pos=s.pos))
+                    print stack
+                    scatter = Scatter(
+                                size_hint=(None, None), 
+                                pos=child.pos)
+                    scatter.add_widget(stack)
+                    print scatter.children[0]
+                    self.add_widget(scatter)
+                    self.remove_widget(s)
+                    self.remove_widget(child)
+                elif (type(child) is Card_Stack) and (type(s) is not Scatter):
+                    print 'add_card_to_stack'
+                    self.remove_widget(s)
+                    child.add_card_to_stack(s) 
+
+        # for child1 in self.children: 
+        #     for child2 in self.children:
+        #         if child2.collide_widget(child1): 
+        #             if (type(child1) is Scatter) and (type(child2) is Scatter) and not child1 == child2:
+        #                 stack = Card_Stack()
+        #                 self.add_widget(stack)
+        #                 self.remove_widget(child1)
+        #                 self.remove_widget(child2)
+        #                 stack.new_stack(child1, child2)
+        #             if (type(child1) is Card_Stack) and (type(child2) is Scatter): 
+        #                 self.remove_widget(child2)
+        #                 child1.add_card_to_stack(child2)
+
+
+        # done = []
+        # for child1 in self.children:
+        #     for child2 in self.children: 
+        #         if child2.collide_widget(child1):
+        #             if not child1 == child2:
+        #                 if child2 not in done: 
+        #                     child2.bind(on_pos=self.reposition(child1, child2))
+        #                     print 'child1', child1, 'child2', child2
+        #                     done.append(child1)
+        #                     done.append(child2)
+
+
+                    # child2.children[0].bind(top=child1.children[0].y, x=child1.children[0].x)
+    
+    # def reposition(root, widget1, widget2): 
+    #     widget2.top = widget1.y 
+    #     widget2.x = widget1.x
 
     # init method
     def __init__(self, **kwargs): 
@@ -359,6 +437,7 @@ class KJSort(FloatLayout):
         # self.bind(on_enter=self.add_labels)
         update = self.add_labels
         Clock.schedule_interval(update, 0.5)
+        
 
 
 # Dummy Class for the first Screen (definition in .kv file)
