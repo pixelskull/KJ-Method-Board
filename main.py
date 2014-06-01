@@ -7,6 +7,7 @@ from kivy.app import App
 from kivy.config import Config
 from kivy.core.window import Window
 from kivy.clock import Clock
+from kivy.graphics import *
 from kivy.uix.widget import Widget
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
@@ -273,6 +274,7 @@ def Singleton(instanceClass):
 class Card_Stack(Widget):
 
     def new_stack(self, card1, card2):
+        print 'create new stack'
         stack = BoxLayout(
                     size_hint=(None, None), 
                     orientation='vertical') 
@@ -281,15 +283,29 @@ class Card_Stack(Widget):
         stack.add_widget(card2)
         self.add_widget(stack)
 
-    def add_card_to_stack(self, card):
-        self.add_widget(card)
+    def add_card_to_stack(self, card): # TODO Card is not added in the right way
+        print 'adding card to stack'
+        if card not in self.children:
+            stack = BoxLayout(
+                        size_hint=(None,None),
+                        orientation='vertical')
+            print card.children
+            for child in self.children:
+                if type(child) is not BoxLayout: 
+                    stack.add_widget(Label(text=child.text, pos=child.pos, size_hint=(1/len(self.children)+1, 1)))
+                    stack.remove_widget(child)
+            stack.add_widget(card)
+            # self.clear_widget(children=None)
+            self.add_widget(stack)
 
     def remove_card_from_stack(self, stack, card): 
         stack.remove_widget(card)
 
     def __init__(self, **kwargs): 
         super(Card_Stack, self).__init__(**kwargs)
-        self.show_area(color='green', alpha=0.0, group=None)
+        with self.canvas: 
+            Color(1,1,1,.2)
+            Rectangle(size=self.size)
 
 
 # implementation Class for the first Screen 
@@ -321,11 +337,15 @@ class KJMethod(FloatLayout):
                 if s.collide_widget(child):
                     # print 'delete_scatter', self.delete_scatter
                     # self.delete_scatter = True
+                    with self.canvas: 
+                        Color(0,1.,0,.2)
                     Singleton(Card).add_card(s.children[0].text)
                     s.create_property('clock_timer')
                     self.delete_callback = partial(self.remove_widget_only, s)
                     Clock.schedule_once(self.delete_callback, 1.5)
-                # else: 
+                else: 
+                    with self.canvas: 
+                        Color(1.,1.,1.,.2)
                 #     s.children[0].show_area(color='green', alpha=0.0, group=None)
                 #     self.delete_scatter = False
                 #     Singleton(Card).remove_card(s.children[0].text)
@@ -379,57 +399,50 @@ class KJSort(FloatLayout):
     def update_scatter(self, s, dt):
         for child in self.children: 
             if s.collide_widget(child) and s is not child:
-                if (type(child) is Scatter) and (type(child.children[0]) is Label):
+                if type(child.children[0]) is Label and \
+                    type(child.children[0]) is not Card_Stack and \
+                    type(s.children[0]) is Label and \
+                    type(s.children[0]) is not Card_Stack:
                     print 'new_stack'
                     stack = Card_Stack()
                     stack.new_stack(
                                 Label(text=s.children[0].text, pos=s.pos),
                                 Label(text=child.children[0].text, pos=s.pos))
-                    print stack
+                    # print stack
                     scatter = Scatter(
                                 size_hint=(None, None), 
                                 pos=child.pos)
                     scatter.add_widget(stack)
-                    print scatter.children[0]
+                    # scatter.show_area(color='green')
                     self.add_widget(scatter)
+                    update_stack = partial(self.update_card_stack, scatter)
+                    Clock.schedule_interval(update_stack, .1)
                     self.remove_widget(s)
                     self.remove_widget(child)
-                elif (type(child) is Card_Stack) and (type(s) is not Scatter):
+                    break
+                # elif (type(child.children[0]) is Card_Stack):
+                # elif type(child.children[0]) is Card_Stack and \
+                #         type(child.children[0]) is not Label and \
+                #         type(s.children[0]) is Label and \
+                #         type(s.children[0]) is not Card_Stack and \
+                #         not operation:
+                #     print 'add_card_to_stack'
+                #     child.children[0].add_card_to_stack(Label(text=s.children[0].text, pos=s.pos)) 
+                #     self.remove_widget(s)
+                #     operation = True
+                #     break
+                # break
+
+    def update_card_stack(self, s, dt):
+        for child in self.children: 
+            # print child.children
+            if child.collide_widget(s) and s is not child: 
+                if type(s.children[0]) is Card_Stack and \
+                        type(child.children[0]) is Label: 
                     print 'add_card_to_stack'
-                    self.remove_widget(s)
-                    child.add_card_to_stack(s) 
+                    s.children[0].add_card_to_stack(Label(text=child.children[0].text, pos=s.pos))
+                    self.remove_widget(child)
 
-        # for child1 in self.children: 
-        #     for child2 in self.children:
-        #         if child2.collide_widget(child1): 
-        #             if (type(child1) is Scatter) and (type(child2) is Scatter) and not child1 == child2:
-        #                 stack = Card_Stack()
-        #                 self.add_widget(stack)
-        #                 self.remove_widget(child1)
-        #                 self.remove_widget(child2)
-        #                 stack.new_stack(child1, child2)
-        #             if (type(child1) is Card_Stack) and (type(child2) is Scatter): 
-        #                 self.remove_widget(child2)
-        #                 child1.add_card_to_stack(child2)
-
-
-        # done = []
-        # for child1 in self.children:
-        #     for child2 in self.children: 
-        #         if child2.collide_widget(child1):
-        #             if not child1 == child2:
-        #                 if child2 not in done: 
-        #                     child2.bind(on_pos=self.reposition(child1, child2))
-        #                     print 'child1', child1, 'child2', child2
-        #                     done.append(child1)
-        #                     done.append(child2)
-
-
-                    # child2.children[0].bind(top=child1.children[0].y, x=child1.children[0].x)
-    
-    # def reposition(root, widget1, widget2): 
-    #     widget2.top = widget1.y 
-    #     widget2.x = widget1.x
 
     # init method
     def __init__(self, **kwargs): 
