@@ -92,6 +92,7 @@ class Menu(Widget):
 class LazySusan(Widget): 
     lazy_angle = NumericProperty(0) 
     tmp = None
+    color = ListProperty([0,0,0,0])
     label1 = ObjectProperty(None)
     label2 = ObjectProperty(None)
     label3 = ObjectProperty(None)
@@ -135,12 +136,18 @@ class LazySusan(Widget):
         if len(data) >= 5:
             self.label5.text = data[4]
             
+    def change_color_green(self): 
+        self.color = (0,1,0,0.2)
+
+    def change_color_grey(self): 
+        self.color = (1,1,1,0.2)
 
     # init method 
     def __init__(self, **kwargs):
         super(LazySusan, self).__init__(**kwargs) 
         update = self.sync_entrys_in_lazy_susan
         Clock.schedule_interval(update, 0.1)
+        self.color = (1,1,1,0.2)
 
 
 # Class for label that is editable 
@@ -281,31 +288,50 @@ class Card_Stack(Widget):
                     # pos=card1.pos)
         stack.add_widget(card1)
         stack.add_widget(card2)
+        with stack.canvas: 
+            Color(1,1,1,.2)
+            Rectangle(size=stack.size)
         self.add_widget(stack)
 
-    def add_card_to_stack(self, card): # TODO Card is not added in the right way
+    def add_card_to_stack(self, card):
         print 'adding card to stack'
         if card not in self.children:
             stack = BoxLayout(
                         size_hint=(None,None),
+                        size=(card.width, len(self.children)*card.height),
                         orientation='vertical')
-            print card.children
-            for child in self.children:
+            print self.children[0].children
+            for child in self.children[0].children:
                 if type(child) is not BoxLayout: 
-                    stack.add_widget(Label(text=child.text, pos=child.pos, size_hint=(1/len(self.children)+1, 1)))
-                    stack.remove_widget(child)
+                    print 'old label: ', child
+                    stack.add_widget(Label(text=child.text, pos=child.pos, size_hint=(1,1/len(self.children)+1)))#(1/len(self.children)+1, 1)))
+                    # stack.remove_widget(child)
             stack.add_widget(card)
-            # self.clear_widget(children=None)
+
+            with stack.canvas:
+                Color(1,1,1,.2)
+                Rectangle(size=stack.size)
+            self.remove_widget(self.children[0])
             self.add_widget(stack)
+            self.canvas.ask_update()
 
-    def remove_card_from_stack(self, stack, card): 
-        stack.remove_widget(card)
+    def remove_card_from_stack(self, stack, card): # TODO on long touch remove the label 
+        pass # stack.remove_widget(card)
 
-    def __init__(self, **kwargs): 
-        super(Card_Stack, self).__init__(**kwargs)
-        with self.canvas: 
-            Color(1,1,1,.2)
-            Rectangle(size=self.size)
+    # def add_canvas(self, stack=None):
+    #     if stack is not None:  
+    #         with stack.canvas: 
+    #             Color(1,1,1,.2)
+    #             Rectangle(size=self.size)
+    #     else: 
+            
+
+    # def __init__(self, **kwargs): 
+    #     super(Card_Stack, self).__init__(**kwargs)
+    #     with self.canvas: 
+    #             Color(1,1,1,.2)
+    #             Rectangle(size=self.size)
+        
 
 
 # implementation Class for the first Screen 
@@ -316,7 +342,7 @@ class KJMethod(FloatLayout):
 
     # add a label to KJMethod Screen 
     def add_label(self, widget, *args): 
-        s = Scatter(size_hint=(None,None), size=(100,50), pos=widget.pos)
+        s = Scatter(size_hint=(None,None), pos=widget.pos) # , size=(100,50)
         #(self.parent.width/2, self.parent.height/2))
         inpt = EditableLabel(text='touch me', size_hint=(None, None), size=(100, 50), keyboard_mode='managed')
         # inpt.bind(on_touch_up=show_keyboard())
@@ -337,18 +363,14 @@ class KJMethod(FloatLayout):
                 if s.collide_widget(child):
                     # print 'delete_scatter', self.delete_scatter
                     # self.delete_scatter = True
-                    with self.canvas: 
-                        Color(0,1.,0,.2)
+                    # with child.canvas: 
+                        # Ellipse(center=child.center, size=child.size)
                     Singleton(Card).add_card(s.children[0].text)
                     s.create_property('clock_timer')
                     self.delete_callback = partial(self.remove_widget_only, s)
-                    Clock.schedule_once(self.delete_callback, 1.5)
-                else: 
-                    with self.canvas: 
-                        Color(1.,1.,1.,.2)
-                #     s.children[0].show_area(color='green', alpha=0.0, group=None)
-                #     self.delete_scatter = False
-                #     Singleton(Card).remove_card(s.children[0].text)
+                    Clock.schedule_once(self.delete_callback, 0.5)
+                # else: 
+                #     child.change_color_grey
 
     # removes (delete) an scatter 
     def remove_widget_callback(self, widget, *args):
