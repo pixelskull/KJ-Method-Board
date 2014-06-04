@@ -23,6 +23,8 @@ from functools import partial
 from kivy.base import EventLoop
 from kivy.base import ExceptionHandler
 from kivy.base import ExceptionManager
+
+from kivy.gesture import GestureStroke
 EventLoop.ensure_window()
 
 from kivy.logger import Logger
@@ -45,7 +47,10 @@ class Menu(Widget):
         touch.ud['menu_event'] = None
         if len(self.touches) >= 1:
             for t in self.touches:
-                if t.distance(touch) <= 70:
+                gesture = GestureStroke()
+                if gesture.points_distance(t, touch) <= 70: 
+                # if t.distance(touch) <= 90:
+                    print 'distance <= 70'
                     callback = partial(self.open_menu, touch)
                     Clock.schedule_once(callback, 0.5)
                     touch.ud['menu_event'] = callback
