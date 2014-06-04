@@ -20,6 +20,8 @@ from kivy.uix.screenmanager import Screen, ScreenManager, SlideTransition
 from kivy.properties import ObjectProperty, NumericProperty, ListProperty, BooleanProperty
 from functools import partial
 from kivy.base import EventLoop
+from kivy.base import ExceptionHandler
+from kivy.base import ExceptionManager
 EventLoop.ensure_window()
 
 from kivy.logger import Logger
@@ -102,7 +104,7 @@ class LazySusan(Widget):
 
     # called when finger touch is detected 
     def on_touch_down(self, touch):
-        if Widget(pos=self.pos, size=self.size).collide_point(touch.pos[0], touch.pos[1]):
+        if self.collide_point(touch.pos[0], touch.pos[1]):
             y = (touch.y - self.center[1])
             x = (touch.x - self.center[0])
             calc = math.degrees(math.atan2(y, x))
@@ -111,7 +113,7 @@ class LazySusan(Widget):
 
     # called when finger is moving 
     def on_touch_move(self, touch):
-        if Widget(pos=self.pos, size=self.size).collide_point(touch.pos[0], touch.pos[1]) and self.tmp is not None:
+        if self.collide_point(touch.pos[0], touch.pos[1]) and self.tmp is not None:
             y = (touch.y - self.center[1])
             x = (touch.x - self.center[0])
             calc = math.degrees(math.atan2(y, x))
@@ -119,12 +121,12 @@ class LazySusan(Widget):
             self.lazy_angle = self.tmp + (new_angle-self.prev_angle)%360
 
     def sync_entrys_in_lazy_susan(self, widget, *args):
-        lazy_json = open('lazy.json', 'r')
-        data = []
-        try:
-            data = json.load(lazy_json)
-        except Exception, e:
-            pass
+        # lazy_json = open('lazy.json', 'r')
+        data = Singleton(Card).cards['default'][-5:]
+        # try:
+        #     data = json.load(lazy_json)
+        # except Exception, e:
+        #     pass
         if len(data) >= 1:
             self.label1.text = data[0]
         if len(data) >= 2:
@@ -146,7 +148,7 @@ class LazySusan(Widget):
     def __init__(self, **kwargs):
         super(LazySusan, self).__init__(**kwargs) 
         update = self.sync_entrys_in_lazy_susan
-        Clock.schedule_interval(update, 0.1)
+        Clock.schedule_interval(update, 0.01)
         self.color = (1,1,1,0.2)
 
 
@@ -298,16 +300,14 @@ class Card_Stack(Widget):
         if card not in self.children:
             stack = BoxLayout(
                         size_hint=(None,None),
-                        size=(card.width, len(self.children)*card.height),
+                        size=(card.width, (len(self.children))*card.height),
                         orientation='vertical')
             print self.children[0].children
             for child in self.children[0].children:
                 if type(child) is not BoxLayout: 
-                    print 'old label: ', child
-                    stack.add_widget(Label(text=child.text, pos=child.pos, size_hint=(1,1/len(self.children)+1)))#(1/len(self.children)+1, 1)))
+                    stack.add_widget(Label(text=child.text, pos=child.pos, size_hint=(1,1/len(self.children)+1)))
                     # stack.remove_widget(child)
             stack.add_widget(card)
-
             with stack.canvas:
                 Color(1,1,1,.2)
                 Rectangle(size=stack.size)
@@ -343,46 +343,39 @@ class KJMethod(FloatLayout):
     # add a label to KJMethod Screen 
     def add_label(self, widget, *args): 
         s = Scatter(size_hint=(None,None), pos=widget.pos) # , size=(100,50)
-        #(self.parent.width/2, self.parent.height/2))
         inpt = EditableLabel(text='touch me', size_hint=(None, None), size=(100, 50), keyboard_mode='managed')
         # inpt.bind(on_touch_up=show_keyboard())
         # KeyboardListener().setCallback(self.key_up)
         s.add_widget(inpt)
         self.add_widget(s)
-        update = partial(self.update_scatter, s)
-        Clock.schedule_interval(update, 1.0/60.0)
 
-    # callback called for checking delete option 
-    def update_scatter(self, s, dt):
-        if (s.pos[1] < 0) or (s.top > Window.height) or (s.pos[0] < 0) or (s.right > Window.width):
-            self.delete_scatter = True
-            self.delete_callback = partial(self.remove_widget_callback, s)
-            Clock.schedule_once(self.delete_callback, 3.0)
-        for child in self.children:
-            if (type(child) is LazySusan):
-                if s.collide_widget(child):
-                    # print 'delete_scatter', self.delete_scatter
-                    # self.delete_scatter = True
-                    # with child.canvas: 
-                        # Ellipse(center=child.center, size=child.size)
-                    Singleton(Card).add_card(s.children[0].text)
-                    s.create_property('clock_timer')
-                    self.delete_callback = partial(self.remove_widget_only, s)
-                    Clock.schedule_once(self.delete_callback, 0.5)
-                # else: 
-                #     child.change_color_grey
+    def on_touch_up(self, touch): 
+        for child in self.children: 
+            if child.pos[1] < 0 or child.top > Window.height \
+                    or child.pos[0] < 0 or child.right > Window.width:
+                self.delete_scatter = True
+                remove_callback = partial(self.remove_widget_callback, child)
+                Clock.schedule_once(remove_callback, 3.)
+                # Singleton(Card).remove_card(child.children[0].text)
+                # self.remove_widget(child)
+            if type(child) is LazySusan: 
+                for child2 in self.children: 
+                    if child2.collide_widget(child) and type(child2) is not LazySusan: 
+                        if len(child2.children) >= 1: 
+                            Singleton(Card).add_card(child2.children[0].text)
+                            self.remove_widget(child2)
 
     # removes (delete) an scatter 
     def remove_widget_callback(self, widget, *args):
-        # if self.delete_scatter:
-        Singleton(Card).remove_card(widget.children[0].text) 
-        self.remove_widget(widget)
-        self.delete_scatter = False
+        if self.delete_scatter:
+            Singleton(Card).remove_card(widget.children[0].text) 
+            self.remove_widget(widget)
+            self.delete_scatter = False
 
-    def remove_widget_only(self, widget, *args):
-        # if self.delete_scatter:
-        self.remove_widget(widget)
-        self.delete_scatter = False
+    # def remove_widget_only(self, widget, *args):
+    #     # if self.delete_scatter:
+    #     self.remove_widget(widget)
+    #     self.delete_scatter = False
 
     def __init__(self, **kwargs): 
         super(KJMethod, self).__init__(**kwargs)
@@ -406,42 +399,84 @@ class KJSort(FloatLayout):
     # method for adding all cards to second screen  (at the moment only one label ist added)
     def add_labels(self, widget, **args): 
         if not self.labelset:
+            postions = []
             for label in Singleton(Card).cards['default']:
-                s = Scatter(
-                        size_hint=(None,None), 
-                        size=(100,50), 
-                        pos=(randint(100,Window.width-100), randint(100,Window.height-100)))
-                inpt = Label(text=label, size_hint=(None,None), size=(100,50), keyboard_mode='managed')
-                s.add_widget(inpt)
-                self.add_widget(s)
-                self.labelset = True
-                update_scatter = partial(self.update_scatter, s)
-                Clock.schedule_interval(update_scatter, 0.1)
+                pos_y=randint(100,Window.width-100)
+                pos_x=randint(100,Window.height-100)
+                if pos_x not in postions and pos_y not in postions:
+                    s = Scatter(
+                            size_hint=(None,None), 
+                            size=(100,50), 
+                            pos=(pos_x, pos_y))
+                    inpt = Label(text=label, size_hint=(None,None), size=(100,50), keyboard_mode='managed')
+                    s.add_widget(inpt)
+                    self.add_widget(s)
+                    self.labelset = True
+                    # update_scatter = partial(self.update_scatter, s)
+                    # Clock.schedule_interval(update_scatter, 0.1)
 
-    def update_scatter(self, s, dt):
+    def on_touch_up(self, touch): 
         for child in self.children: 
-            if s.collide_widget(child) and s is not child:
-                if type(child.children[0]) is Label and \
-                    type(child.children[0]) is not Card_Stack and \
-                    type(s.children[0]) is Label and \
-                    type(s.children[0]) is not Card_Stack:
-                    print 'new_stack'
-                    stack = Card_Stack()
-                    stack.new_stack(
-                                Label(text=s.children[0].text, pos=s.pos),
-                                Label(text=child.children[0].text, pos=s.pos))
-                    # print stack
-                    scatter = Scatter(
-                                size_hint=(None, None), 
-                                pos=child.pos)
-                    scatter.add_widget(stack)
-                    # scatter.show_area(color='green')
-                    self.add_widget(scatter)
-                    update_stack = partial(self.update_card_stack, scatter)
-                    Clock.schedule_interval(update_stack, .1)
-                    self.remove_widget(s)
-                    self.remove_widget(child)
-                    break
+            if type(child.children[0]) is Label:
+                for child2 in self.children: 
+                    if child2.collide_widget(child) and child is not child2: 
+                        if type(child2.children[0]) is Label: 
+                            self.create_stack(child, child2)
+            if type(child.children[0]) is Card_Stack:
+                for child2 in self.children: 
+                    if child2.collide_widget(child) and child is not child2: 
+                        if type(child2.children[0] is Label):
+                            self.add_to_stack(child, child2)
+
+
+    def create_stack(self, card1, card2): 
+        stack = Card_Stack()
+        stack.new_stack(
+                    Label(text=card1.children[0].text, pos=card1.pos),
+                    Label(text=card2.children[0].text, pos=card1.pos)
+                )
+        scatter = Scatter(
+                    size_hint=(None, None), 
+                    pos=card1.pos
+                )
+        scatter.add_widget(stack)
+        self.add_widget(scatter)
+                    # update_stack = partial(self.update_card_stack, scatter)
+                    # Clock.schedule_interval(update_stack, .1)
+        self.remove_widget(card1)
+        self.remove_widget(card2)
+
+    def add_to_stack(self, stack, card): 
+        print 'add_card_to_stack'
+        stack.children[0].add_card_to_stack(Label(text=card.children[0].text, pos=stack.pos))
+        self.remove_widget(card)
+
+
+    # def update_scatter(self, s, dt):
+    #     for child in self.children: 
+    #         if s.collide_widget(child) and s is not child:
+    #             if type(child.children[0]) is Label and \
+    #                 type(child.children[0]) is not Card_Stack and \
+    #                 type(s.children[0]) is Label and \
+    #                 type(s.children[0]) is not Card_Stack:
+    #                 print 'new_stack'
+    #                 stack = Card_Stack()
+    #                 stack.new_stack(
+    #                             Label(text=s.children[0].text, pos=s.pos),
+    #                             Label(text=child.children[0].text, pos=s.pos)
+    #                         )
+    #                 # print stack
+    #                 scatter = Scatter(
+    #                             size_hint=(None, None), 
+    #                             pos=child.pos)
+    #                 scatter.add_widget(stack)
+    #                 # scatter.show_area(color='green')
+    #                 self.add_widget(scatter)
+    #                 update_stack = partial(self.update_card_stack, scatter)
+    #                 Clock.schedule_interval(update_stack, .1)
+    #                 self.remove_widget(s)
+    #                 self.remove_widget(child)
+    #                 break
                 # elif (type(child.children[0]) is Card_Stack):
                 # elif type(child.children[0]) is Card_Stack and \
                 #         type(child.children[0]) is not Label and \
@@ -455,15 +490,16 @@ class KJSort(FloatLayout):
                 #     break
                 # break
 
-    def update_card_stack(self, s, dt):
-        for child in self.children: 
-            # print child.children
-            if child.collide_widget(s) and s is not child: 
-                if type(s.children[0]) is Card_Stack and \
-                        type(child.children[0]) is Label: 
-                    print 'add_card_to_stack'
-                    s.children[0].add_card_to_stack(Label(text=child.children[0].text, pos=s.pos))
-                    self.remove_widget(child)
+    # def update_card_stack(self, s, dt):
+    #     for child in self.children: 
+    #         # print child.children
+    #         if child.collide_widget(s) and s is not child: 
+    #             if type(s.children[0]) is Card_Stack and \
+    #                     type(child.children[0]) is Label: 
+    #                 print 'add_card_to_stack'
+    #                 s.children[0].add_card_to_stack(Label(text=child.children[0].text, pos=s.pos))
+    #                 self.remove_widget(child)
+
 
 
     # init method
@@ -504,5 +540,13 @@ Config.write()
 
 #debug stuff 
 kwad.attach()
+
+# ExceptionHandler implementation 
+# class E(ExceptionHandler): 
+#     def handle_exception(self, inst):
+#         Logger.exception('Exception catched by ExceptionHandler')
+#         return ExceptionManager.PASS
+
+# ExceptionManager.add_handler(E())
 if __name__ == '__main__':
  	KJMethodApp().run()
