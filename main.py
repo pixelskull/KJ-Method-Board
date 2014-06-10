@@ -21,6 +21,7 @@ from kivy.uix.screenmanager import Screen, ScreenManager, SlideTransition
 from kivy.properties import ObjectProperty, NumericProperty, ListProperty, BooleanProperty
 from functools import partial
 from kivy.base import EventLoop
+from kivy.base import EventLoopBase
 from kivy.base import ExceptionHandler
 from kivy.base import ExceptionManager
 
@@ -44,7 +45,10 @@ class Menu(Widget):
 
     # save each touch in list for detecting two-finger-touch 
     def save_touch_down(self, instance, touch):
+        print 'before: -----> %s' % EventLoopBase.touches
         touch.ud['menu_event'] = None
+        touch_list = []
+        # print touch_list[0].value
         if len(self.touches) >= 1:
             for t in self.touches:
                 gesture = GestureStroke()
@@ -55,9 +59,11 @@ class Menu(Widget):
                     Clock.schedule_once(callback, 0.5)
                     touch.ud['menu_event'] = callback
         self.touches.append(touch)
+        print 'after -----> %s' % self.touches
 
     # delete touch when finger is lifted 
     def remove_touch_down(self, instance, touch):
+        print self.touches
         if touch in self.touches:
             if touch.ud['menu_event'] is not None:
                 Clock.unschedule(touch.ud['menu_event'])
@@ -110,8 +116,8 @@ class LazySusan(Widget):
     # called when finger touch is detected 
     def on_touch_down(self, touch):
         if self.collide_point(touch.pos[0], touch.pos[1]):
-            y = (touch.y - self.center[1])
             x = (touch.x - self.center[0])
+            y = (touch.y - self.center[1])
             calc = math.degrees(math.atan2(y, x))
             self.prev_angle = calc if calc > 0 else 360+calc
             self.tmp = self.lazy_angle
@@ -119,8 +125,8 @@ class LazySusan(Widget):
     # called when finger is moving 
     def on_touch_move(self, touch):
         if self.collide_point(touch.pos[0], touch.pos[1]) and self.tmp is not None:
-            y = (touch.y - self.center[1])
             x = (touch.x - self.center[0])
+            y = (touch.y - self.center[1])
             calc = math.degrees(math.atan2(y, x))
             new_angle = calc if calc > 0 else 360+calc
             self.lazy_angle = self.tmp + (new_angle-self.prev_angle)%360
@@ -382,14 +388,17 @@ class KJSort(FloatLayout):
                 while not added:
                     pos_y=randint(100, Window.height-100)
                     pos_x=randint(100, Window.width-100)
+                    degree=self.compute_rotation(pos_x, pos_y)
                     if pos_x not in postions and \
                         pos_y not in postions:
                         s = Scatter(
                                 size_hint=(None,None), 
                                 size=(100,50), 
-                                pos=(pos_x, pos_y)
+                                pos=(pos_x, pos_y),
+                                rotation=degree+90 
                             )
                         print 'added label: ' + label
+                        self.compute_rotation(pos_x, pos_y)
                         inpt = Label(text=label, size_hint=(None,None), size=(100,50), keyboard_mode='managed')
                         s.add_widget(inpt)
                         self.add_widget(s)
@@ -432,6 +441,12 @@ class KJSort(FloatLayout):
         stack.children[0].add_card_to_stack(Label(text=card.children[0].text, pos=stack.pos))
         self.remove_widget(card)
 
+    def compute_rotation(self, pos_x, pos_y): 
+        x = (pos_x - Window.center[0])
+        y = (pos_y - Window.center[1])
+        calc = math.degrees(math.atan2(y, x))
+        return calc if calc > 0 else 360+calc
+        # self.lazy_angle = self.tmp + (new_angle-self.prev_angle)%360
 
     # init method
     def __init__(self, **kwargs): 
