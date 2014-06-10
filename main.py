@@ -183,9 +183,13 @@ class EditableLabel(Label):
             return
         if not self.textinput:
             self.textinput = t = TextInput(
-                text=self.text, size_hint=(None, None),
-                font_size=self.font_size, font_name=self.font_name,
-                pos=self.pos, size=self.size, multiline=False, keyboard_mode='managed')
+                text=self.text, 
+                size_hint=(None, None),
+                font_size=self.font_size, 
+                font_name=self.font_name,
+                pos=self.pos, size=self.size, 
+                multiline=False, keyboard_mode='managed'
+            )
             self.bind(pos=t.setter('pos'), size=t.setter('size'))
             self.add_widget(self.textinput)
             self.textinput.bind(on_text_validate=self.on_text_validate, focus=self.on_text_focus)
@@ -332,7 +336,8 @@ class KJMethod(FloatLayout):
 
     # add a label to KJMethod Screen 
     def add_label(self, widget, *args): 
-        s = Scatter(size_hint=(None,None), pos=widget.pos) # , size=(100,50)
+        degree = self.compute_rotation(widget.pos[0], widget.pos[1])
+        s = Scatter(size_hint=(None,None), pos=widget.pos, rotation=degree+90) # , size=(100,50)
         inpt = EditableLabel(text='touch me', size_hint=(None, None), size=(100, 50), keyboard_mode='managed')
         # inpt.bind(on_touch_up=show_keyboard())
         # KeyboardListener().setCallback(self.key_up)
@@ -359,6 +364,12 @@ class KJMethod(FloatLayout):
             Singleton(Card).remove_card(widget.children[0].text) 
             self.remove_widget(widget)
             self.delete_scatter = False
+
+    def compute_rotation(self, pos_x, pos_y): 
+        x = (pos_x - Window.center[0])
+        y = (pos_y - Window.center[1])
+        calc = math.degrees(math.atan2(y, x))
+        return calc if calc > 0 else 360+calc
 
     def __init__(self, **kwargs): 
         super(KJMethod, self).__init__(**kwargs)
