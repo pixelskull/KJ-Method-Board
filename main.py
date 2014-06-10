@@ -106,7 +106,7 @@ class Menu(Widget):
         self.bind(on_touch_down=self.save_touch_down)
         # self.show_area()
         self.bind(on_touch_up=self.remove_touch_down)
-        # self.bind(on_touch_move=self.remove_touch_down)
+        self.bind(on_touch_move=self.remove_touch_down)
 
 
 # class for implementing circle widget in middel of first screen 
@@ -366,7 +366,7 @@ class KJMethod(FloatLayout):
                 for child2 in self.children: 
                     if child2.collide_widget(child) and \
                         type(child2) is not LazySusan  and \
-                        type(child2.children[0]) is not Menu: 
+                        type(child2) is not Menu: 
                         if len(child2.children) >= 1: 
                             Singleton(Card).add_card(child2.children[0].text)
                             self.remove_widget(child2)
@@ -451,9 +451,11 @@ class KJSort(FloatLayout):
                     Label(text=card1.children[0].text, pos=card1.pos),
                     Label(text=card2.children[0].text, pos=card1.pos)
                 )
+        degree = self.compute_rotation(card1.pos[0], card1.pos[1])
         scatter = Scatter(
                     size_hint=(None, None), 
-                    pos=card1.pos
+                    pos=card1.pos, 
+                    rotation=degree+90
                 )
         scatter.add_widget(stack)
         self.add_widget(scatter)
@@ -505,7 +507,7 @@ class KJMethodApp(App, ScreenManager):
 Config.set('graphics', 'width', '1600')
 Config.set('graphics', 'height', '1200')
 Config.write()
-# Window.fullscreen = True
+Window.fullscreen = True
 
 #debug stuff 
 kwad.attach()
