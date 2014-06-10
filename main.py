@@ -114,6 +114,7 @@ class LazySusan(Widget):
     lazy_angle = NumericProperty(0) 
     tmp = None
     color = ListProperty([0,0,0,0])
+    topic_label = ObjectProperty(Label)
     label1 = ObjectProperty(None)
     label2 = ObjectProperty(None)
     label3 = ObjectProperty(None)
@@ -140,7 +141,9 @@ class LazySusan(Widget):
             self.lazy_angle = self.tmp + (new_angle-self.prev_angle)%360
 
     def sync_entrys_in_lazy_susan(self, widget, *args):
-        data = Singleton(Card).cards['default'][-5:]
+        self.topic_label.text = "Thema: Platzhalter"
+
+        data = Singleton(Card).cards['default'][-5:] 
         if len(data) >= 1:
             self.label1.text = data[0]
         if len(data) >= 2:
@@ -361,7 +364,9 @@ class KJMethod(FloatLayout):
                 Clock.schedule_once(remove_callback, 3.)
             if type(child) is LazySusan: 
                 for child2 in self.children: 
-                    if child2.collide_widget(child) and type(child2) is not LazySusan: 
+                    if child2.collide_widget(child) and \
+                        type(child2) is not LazySusan  and \
+                        type(child2.children[0]) is not Menu: 
                         if len(child2.children) >= 1: 
                             Singleton(Card).add_card(child2.children[0].text)
                             self.remove_widget(child2)

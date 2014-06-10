@@ -11,6 +11,7 @@
 			size_hint: None, None
 			size: root.size
 		LazySusan:
+			topic_label: topic_label
 			label1: label1
 			label2: label2
 			label3: label3 
@@ -31,9 +32,19 @@
 					pos: self.pos
 			canvas.after:
 				PopMatrix
+			Label: 
+				id: topic_label
+				pos: self.parent.center[0] - self.width/2, self.parent.center[1]+self.parent.height/2 - 50
+				size: self.texture_size
+				canvas: 
+					Color: 
+						rgba: 1,1,1,0.2
+					Rectangle: 
+						pos: self.pos
+						size: self.size
 			Label:
 				id: label1
-				pos: self.parent.center[0] - self.width/2, self.parent.center[1]+self.parent.height/2 - 50
+				pos: topic_label.pos[0], topic_label.pos[1]-20
 				size: self.texture_size
 				canvas:
 					Color: 
