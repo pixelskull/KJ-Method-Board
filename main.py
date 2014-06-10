@@ -45,42 +45,49 @@ class Menu(Widget):
 
     # save each touch in list for detecting two-finger-touch 
     def save_touch_down(self, instance, touch):
-        print 'before: -----> %s' % EventLoopBase.touches
         touch.ud['menu_event'] = None
-        touch_list = []
-        # print touch_list[0].value
+        # touch_list = EventLoop.window.mainloop().touches()
+        # print EventLoop.touches()
         if len(self.touches) >= 1:
             for t in self.touches:
                 gesture = GestureStroke()
                 if gesture.points_distance(t, touch) <= 70: 
                 # if t.distance(touch) <= 90:
                     print 'distance <= 70'
-                    callback = partial(self.open_menu, touch)
+                    callback = partial(self.open_menu, touch, t)
                     Clock.schedule_once(callback, 0.5)
                     touch.ud['menu_event'] = callback
         self.touches.append(touch)
-        print 'after -----> %s' % self.touches
+        print 'added', touch
 
     # delete touch when finger is lifted 
     def remove_touch_down(self, instance, touch):
-        print self.touches
+        print 'remove', touch
         if touch in self.touches:
             if touch.ud['menu_event'] is not None:
                 Clock.unschedule(touch.ud['menu_event'])
             self.touches.remove(touch)
+            print self.touches
+
+    # def on_touch_up(self, touch): 
+    #     print 'remove', touch
 
     # method for opening the menu (create menu widget)
-    def open_menu(self, touch, *args): 
+    def open_menu(self, touch1, touch2, *args): 
         menu = BoxLayout(
             size_hint=(None, None),
             orientation='vertical',
-            center=touch.pos)
+            center=touch1.pos)
         menu.add_widget(Button(text='new', on_press=self.parent.add_label))
         menu.add_widget(Button(text='done', on_press=self.change_view))
         close = Button(text='close')
         close.bind(on_release=partial(self.close_menu, menu))
         menu.add_widget(close)
         self.parent.add_widget(menu)
+        if touch1 in self.touches and touch2 in self.touches: 
+            print 'remove ', touch1, 'and ', touch2
+            self.touches.remove(touch1)
+            self.touches.remove(touch2)
         callback = partial(self.close_menu, menu)
         Clock.schedule_once(callback, 2.5)
 
@@ -97,8 +104,9 @@ class Menu(Widget):
         super(Menu, self).__init__(**kwargs)
         self.app = KJMethodApp.get_running_app()
         self.bind(on_touch_down=self.save_touch_down)
+        # self.show_area()
         self.bind(on_touch_up=self.remove_touch_down)
-        self.bind(on_touch_move=self.remove_touch_down)
+        # self.bind(on_touch_move=self.remove_touch_down)
 
 
 # class for implementing circle widget in middel of first screen 
@@ -492,17 +500,17 @@ class KJMethodApp(App, ScreenManager):
 Config.set('graphics', 'width', '1600')
 Config.set('graphics', 'height', '1200')
 Config.write()
-Window.fullscreen = True
+# Window.fullscreen = True
 
 #debug stuff 
 kwad.attach()
 
 # ExceptionHandler implementation 
-class E(ExceptionHandler): 
-    def handle_exception(self, inst):
-        Logger.exception('Exception catched by ExceptionHandler')
-        return ExceptionManager.PASS
-ExceptionManager.add_handler(E())
+# class E(ExceptionHandler): 
+#     def handle_exception(self, inst):
+#         Logger.exception('Exception catched by ExceptionHandler')
+#         return ExceptionManager.PASS
+# ExceptionManager.add_handler(E())
 
 if __name__ == '__main__':
  	KJMethodApp().run()
