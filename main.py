@@ -49,28 +49,29 @@ class Menu(Widget):
 
     # save each touch in list for detecting two-finger-touch 
     def save_touch_down(self, instance, touch):
-        touch.ud['menu_event'] = None
+        # touch.ud['menu_event'] = None
         # touch_list = EventLoop.window.mainloop().touches()
         # print EventLoop.touches()
-        if len(self.touches) >= 1:
-            for t in self.touches:
+        if len(self.parent.touches) >= 1:
+            for t in self.parent.touches:
                 gesture = GestureStroke()
-                if gesture.points_distance(t, touch) <= 70: 
+                if t is not touch:
+                    if gesture.points_distance(t, touch) <= 70: 
                 # if t.distance(touch) <= 90:
-                    print 'distance <= 70'
-                    callback = partial(self.open_menu, touch, t)
-                    Clock.schedule_once(callback, 0.5)
-                    touch.ud['menu_event'] = callback
-        self.touches.append(touch)
-        print 'added', touch
+                        print 'distance <= 70'
+                        callback = partial(self.open_menu, touch, t)
+                        Clock.schedule_once(callback, 0.5)
+                        touch.ud['menu_event'] = callback
+        # self.touches.append(touch)
+        # print 'added', touch
 
     # delete touch when finger is lifted 
     def remove_touch_down(self, instance, touch):
-        print 'remove', touch
+        # print 'remove', touch
         if touch in self.touches:
             if touch.ud['menu_event'] is not None:
                 Clock.unschedule(touch.ud['menu_event'])
-            self.touches.remove(touch)
+            # self.touches.remove(touch)
             print self.touches
 
     def compute_rotation(self, pos_x, pos_y):
@@ -87,7 +88,7 @@ class Menu(Widget):
 
         scatter = Scatter(size=layout.size, center=touch2.pos, do_scale=False, do_translation=False)
         scatter.rotation = self.compute_rotation(scatter.center_x, scatter.center_y)+90 
-        
+
         button1 = Button(text='close',
                         pos_hint={'x':0.2,'y':0.0},
                         size_hint=(None, None),
@@ -142,10 +143,10 @@ class Menu(Widget):
 
         if touch1 in self.touches: 
             print "remove: ", touch1
-            self.touches.remove(touch1)
+            self.parent.touches.remove(touch1)
         if touch2 in self.touches: 
             print "remove: ", touch2
-            self.touches.remove(touch2)
+            self.parent.touches.remove(touch2)
 
         layout.add_widget(button1)
         scatter.add_widget(layout)
@@ -401,7 +402,21 @@ class Card_Stack(Widget):
 class KJMethod(FloatLayout):
     delete_scatter = BooleanProperty(False)
 
+    touches = []
+
     delete_callback = None
+
+
+    def save_touch_down(self, instance, touch):
+        self.touches.append(touch)
+        print 'added', touch
+
+    # delete touch when finger is lifted 
+    def remove_touch_down(self, instance, touch):
+        print 'remove', touch
+        if touch in self.touches:
+            self.touches.remove(touch)
+            print self.touches
 
     # add a label to KJMethod Screen 
     def add_label(self, widget, *args): 
@@ -413,7 +428,8 @@ class KJMethod(FloatLayout):
         s.add_widget(inpt)
         self.add_widget(s)
 
-    def on_touch_up(self, touch): 
+    def on_touch_up(self, touch):
+        print "-------> ", touch, "<----------" 
         for child in self.children: 
             if child.pos[1] < 0 or child.top > Window.height \
                     or child.pos[0] < 0 or child.right > Window.width:
@@ -447,6 +463,9 @@ class KJMethod(FloatLayout):
 
     def __init__(self, **kwargs): 
         super(KJMethod, self).__init__(**kwargs)
+        self.bind(on_touch_down=self.save_touch_down)
+        self.bind(on_touch_up=self.remove_touch_down)
+        self.bind(on_touch_move=self.remove_touch_down)
         try:
             os.remove('./main.json')
             open('main.json', 'w')
