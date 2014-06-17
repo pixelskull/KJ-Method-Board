@@ -12,6 +12,9 @@ from kivy.graphics import *
 from kivy.uix.widget import Widget
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
+
+from kivy.uix.relativelayout import RelativeLayout
+
 from kivy.uix.button import Button
 from kivy.uix.scatter import Scatter
 from kivy.uix.vkeyboard import VKeyboard
@@ -42,6 +45,7 @@ import kwad
 class Menu(Widget): 
     touches = []
     app = None;
+    degree = NumericProperty(0)
 
     # save each touch in list for detecting two-finger-touch 
     def save_touch_down(self, instance, touch):
@@ -69,34 +73,89 @@ class Menu(Widget):
             self.touches.remove(touch)
             print self.touches
 
-    # def on_touch_up(self, touch): 
-    #     print 'remove', touch
+    def compute_rotation(self, pos_x, pos_y):
+        x = (pos_x - Window.center[0])
+        y = (pos_y - Window.center[1])
+        calc = math.degrees(math.atan2(y, x))
+        return calc if calc > 0 else 360+calc
 
-    # method for opening the menu (create menu widget)
-    def open_menu(self, touch1, touch2, *args): 
-        menu = BoxLayout(
-            size_hint=(None, None),
-            orientation='vertical',
-            center=touch1.pos)
-        menu.add_widget(Button(text='new', on_press=self.parent.add_label))
-        menu.add_widget(Button(text='done', on_press=self.change_view))
-        close = Button(text='close')
-        close.bind(on_release=partial(self.close_menu, menu))
-        menu.add_widget(close)
-        self.parent.add_widget(menu)
-        if touch1 in self.touches and touch2 in self.touches: 
-            print 'remove ', touch1, 'and ', touch2
+    def open_menu(self, touch1, touch2, *args):
+        circlesize = 120
+        buttonsize = 50
+
+        layout = FloatLayout(size_hint=(None,None), size=(circlesize,circlesize))
+
+        scatter = Scatter(size=layout.size, center=touch2.pos, do_scale=False, do_translation=False)
+        scatter.rotation = self.compute_rotation(scatter.center_x, scatter.center_y)+90 
+        
+        button1 = Button(text='close',
+                        pos_hint={'x':0.2,'y':0.0},
+                        size_hint=(None, None),
+                        size=(buttonsize, buttonsize),
+                        background_color=(1, 1, 1, 0), 
+                        on_press=partial(self.close_menu, scatter))
+
+        button2 = Button(text='done',
+                        pos_hint={'x':0.5, 'y':0.5},
+                        size_hint=(None,None), 
+                        size=(buttonsize, buttonsize), 
+                        background_color=(1,1,1,0),
+                        on_press=self.change_view)
+        layout.add_widget(button2)
+
+        button3 = Button(text='input',
+                        pos_hint={'x':0.0,'y':0.5},
+                        size_hint=(None, None),
+                        size=(buttonsize, buttonsize),
+                        background_color=(1, 1, 1, 0),
+                        on_press=partial(self.parent.add_label,scatter)) 
+        layout.add_widget(button3)
+
+        self.add_widget(scatter)
+
+        with button1.canvas.before: 
+            Color(1,1,0.5,0.2)
+            Ellipse(
+                size_hint=(None, None),
+                size=(circlesize, circlesize), 
+                angle_start=240, 
+                angle_end=120 
+                )
+
+        with button2.canvas.before: 
+            Color(1,1,0.5,0.2)
+            Ellipse(
+                size_hint=(None, None),
+                size=(circlesize, circlesize), 
+                angle_start=0, 
+                angle_end=120 
+                )
+
+        with button3.canvas.before: 
+            Color(1, 1, 1, 0.2)
+            Ellipse(
+                size_hint=(None, None),
+                size=(circlesize, circlesize),
+                angle_start=240,
+                angle_end=360
+                )
+
+        if touch1 in self.touches: 
+            print "remove: ", touch1
             self.touches.remove(touch1)
+        if touch2 in self.touches: 
+            print "remove: ", touch2
             self.touches.remove(touch2)
-        callback = partial(self.close_menu, menu)
-        Clock.schedule_once(callback, 2.5)
+
+        layout.add_widget(button1)
+        scatter.add_widget(layout)
 
     # method for closing menu
     def close_menu(self, widget, *args):
-        self.parent.remove_widget(widget)
+        self.remove_widget(widget)
 
     # method for changeing view 
-    def change_view(self, widget, *args):
+    def change_view(self, *args):
         self.app.sm.switch_to(KJSortScreen(name='sort'))
 
     # initialisation method
@@ -142,7 +201,6 @@ class LazySusan(Widget):
 
     def sync_entrys_in_lazy_susan(self, widget, *args):
         self.topic_label.text = "Thema: Platzhalter"
-
         data = Singleton(Card).cards['default'][-5:] 
         if len(data) >= 1:
             self.label1.text = data[0]
@@ -348,7 +406,7 @@ class KJMethod(FloatLayout):
     # add a label to KJMethod Screen 
     def add_label(self, widget, *args): 
         degree = self.compute_rotation(widget.pos[0], widget.pos[1])
-        s = Scatter(size_hint=(None,None), pos=widget.pos, rotation=degree+90) # , size=(100,50)
+        s = Scatter(size_hint=(None,None), pos=widget.pos, rotation=degree+110) # , size=(100,50)
         inpt = EditableLabel(text='touch me', size_hint=(None, None), size=(100, 50), keyboard_mode='managed')
         # inpt.bind(on_touch_up=show_keyboard())
         # KeyboardListener().setCallback(self.key_up)
@@ -368,12 +426,15 @@ class KJMethod(FloatLayout):
                         type(child2) is not LazySusan  and \
                         type(child2) is not Menu: 
                         if len(child2.children) >= 1: 
-                            Singleton(Card).add_card(child2.children[0].text)
-                            self.remove_widget(child2)
+                            try: 
+                                Singleton(Card).add_card(child2.children[0].text)
+                                self.remove_widget(child2)
+                            except AttributeError: 
+                                pass
 
     # removes (delete) an scatter 
     def remove_widget_callback(self, widget, *args):
-        if self.delete_scatter:
+        if self.delete_scatter and type(widget.children[0]) is not FloatLayout:
             Singleton(Card).remove_card(widget.children[0].text) 
             self.remove_widget(widget)
             self.delete_scatter = False
@@ -504,10 +565,10 @@ class KJMethodApp(App, ScreenManager):
         return self.sm
 
 #resolution settings
-Config.set('graphics', 'width', '1600')
-Config.set('graphics', 'height', '1200')
+Config.set('graphics', 'width', '1280')
+Config.set('graphics', 'height', '1024')
 Config.write()
-Window.fullscreen = True
+# Window.fullscreen = True
 
 #debug stuff 
 kwad.attach()
