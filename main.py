@@ -49,30 +49,22 @@ class Menu(Widget):
 
     # save each touch in list for detecting two-finger-touch 
     def save_touch_down(self, instance, touch):
-        # touch.ud['menu_event'] = None
-        # touch_list = EventLoop.window.mainloop().touches()
-        # print EventLoop.touches()
         if len(self.parent.touches) >= 1:
             for t in self.parent.touches:
                 gesture = GestureStroke()
                 if t is not touch:
                     if gesture.points_distance(t, touch) <= 70: 
-                # if t.distance(touch) <= 90:
                         print 'distance <= 70'
                         callback = partial(self.open_menu, touch, t)
                         Clock.schedule_once(callback, 0.5)
                         touch.ud['menu_event'] = callback
-        # self.touches.append(touch)
-        # print 'added', touch
+
 
     # delete touch when finger is lifted 
     def remove_touch_down(self, instance, touch):
-        # print 'remove', touch
         if touch in self.touches:
             if touch.ud['menu_event'] is not None:
                 Clock.unschedule(touch.ud['menu_event'])
-            # self.touches.remove(touch)
-            print self.touches
 
     def compute_rotation(self, pos_x, pos_y):
         x = (pos_x - Window.center[0])
@@ -142,10 +134,8 @@ class Menu(Widget):
                 )
 
         if touch1 in self.touches: 
-            print "remove: ", touch1
             self.parent.touches.remove(touch1)
         if touch2 in self.touches: 
-            print "remove: ", touch2
             self.parent.touches.remove(touch2)
 
         layout.add_widget(button1)
@@ -317,19 +307,19 @@ class Card():
 
     # syncronising Cards with Json files 
     def sync_cards_withFiles(self, widget, *args):
-        with open('lazy.json', 'w') as outfile: 
-            json.dump(self.cards['default'][-5:], outfile);
+        # with open('lazy.json', 'w') as outfile: 
+        #     json.dump(self.cards['default'][-5:], outfile);
         if self.cards_changed is True:
-            main_json = open('main.json', 'r+')
+            main_json = open('kj-method.json', 'r+')
             main_data = None
             try:
                 main_data = json.load(main_json)
             except Exception, e:
                 pass
-            with open('main.json', 'w') as outfile:
+            with open('kj-method.json', 'w') as outfile:
                 json.dump(self.cards, outfile)
             self.cards_changed = False 
-        main_json = open('main.json', 'r+')
+        main_json = open('kj-method.json', 'r+')
         try:
             main_data = json.load(main_json)
             for item in main_data['default']:
@@ -467,15 +457,15 @@ class KJMethod(FloatLayout):
         self.bind(on_touch_up=self.remove_touch_down)
         self.bind(on_touch_move=self.remove_touch_down)
         try:
-            os.remove('./main.json')
-            open('main.json', 'w')
+            os.remove('./kj-method.json')
+            open('kj-method.json', 'w')
         except Exception, e:
             pass
-        try:
-            os.remove('./lazy.json')
-            open('lazy.json', 'w')
-        except Exception, e:
-            pass
+        # try:
+        #     os.remove('./lazy.json')
+        #     open('lazy.json', 'w')
+        # except Exception, e:
+        #     pass
 
 
 # implementation Class for the second Screen
