@@ -53,8 +53,8 @@ class Menu(Widget):
             for t in self.parent.touches:
                 gesture = GestureStroke()
                 if t is not touch:
-                    if gesture.points_distance(t, touch) <= 70: 
-                        print 'distance <= 120'
+                    if gesture.points_distance(t, touch) <= 160: 
+                        # print 'distance <= 300'
                         callback = partial(self.open_menu, touch, t)
                         Clock.schedule_once(callback, 0.5)
                         touch.ud['menu_event'] = callback
@@ -107,7 +107,7 @@ class Menu(Widget):
         self.add_widget(scatter)
 
         with button1.canvas.before: 
-            Color(1,1,0.5,0.2)
+            Color(1,1,0,0.2)
             Ellipse(
                 size_hint=(None, None),
                 size=(circlesize, circlesize), 
@@ -155,8 +155,8 @@ class Menu(Widget):
         self.app = KJMethodApp.get_running_app()
         self.bind(on_touch_down=self.save_touch_down)
         # self.show_area()
-        self.bind(on_touch_up=self.remove_touch_down)
-        self.bind(on_touch_move=self.remove_touch_down)
+        # self.bind(on_touch_up=self.remove_touch_down)
+        # self.bind(on_touch_move=self.remove_touch_down)
 
 
 # class for implementing circle widget in middel of first screen 
@@ -231,10 +231,17 @@ class EditableLabel(Label):
             self.edit = True
         return super(EditableLabel, self).on_touch_down(touch)
 
-    # called when touch is moving 
-    def on_touch_move(self, touch): 
-        self.textinput.focus = False 
-        self.parent.parent.delete_scatter = False
+    # def on_touch_move(self, touch):
+    #     try: 
+    #         self.textinput.hide_keyboard()
+    #     except AttributeError:
+    #         pass 
+
+    # called when touch is removed  
+    # def on_touch_up(self, touch):
+    #     if self.textinput is not None: 
+    #         self.textinput.focus = False 
+    #         self.parent.parent.delete_scatter = False
 
     # called when label is edited 
     def on_edit(self, instance, value):
@@ -253,23 +260,25 @@ class EditableLabel(Label):
             )
             self.bind(pos=t.setter('pos'), size=t.setter('size'))
             self.add_widget(self.textinput)
-            self.textinput.bind(on_text_validate=self.on_text_validate, focus=self.on_text_focus)
+            self.textinput.bind( focus=self.on_text_focus) # on_text_validate=self.on_text_validate,
+            validate = self.on_text_validate
+            Clock.schedule_interval(validate,0.1)
         else:
             self.add_widget(self.textinput) 
 
     # called when text is entered 
     def on_text_validate(self, instance):
-        if instance.text is not "" and instance.text is not "touch me":
-            self.text = instance.text
-            self.edit = False
+        if self.textinput.text is not "" and self.textinput.text is not "touch me":
+            self.text = self.textinput.text
+            # self.edit = False
         else: 
-            instance.text = "touch me"
+            self.text = "touch me"
 
     # called when label has focus (touch on label)
     def on_text_focus(self, instance, focus):
         if self.textinput.text == "touch me":
             self.textinput.text = ""
-        if focus is False:# or self.edit is False:
+        if focus is False or self.edit is False:
             if self.textinput.text == "":
                 self.textinput.text = "touch me"
             else: 
@@ -282,6 +291,7 @@ class EditableLabel(Label):
     def __init__(self, **kwargs):
         super(EditableLabel, self).__init__(**kwargs)
         self.show_area()
+        
 
 
 # dummy implementation for saving Cards 
@@ -353,11 +363,13 @@ class Card_Stack(Widget):
 
     def new_stack(self, card1, card2):
         print 'create new stack'
-        stack = BoxLayout(
-                    size_hint=(None, None), 
-                    orientation='vertical') 
+        
                     # pos=card1.pos)
         title_label = EditableLabel(text='titel eingeben', size_hint=(None, None), size=(100, 50), keyboard_mode='managed')
+        stack = BoxLayout(
+                    size_hint=(None, None),
+                    size=(100, 300), 
+                    orientation='vertical') 
         stack.add_widget(title_label)
         stack.add_widget(card1)
         stack.add_widget(card2)
@@ -368,19 +380,18 @@ class Card_Stack(Widget):
 
     def add_card_to_stack(self, card):
         print 'adding card to stack'
-        title_label = None
         if card not in self.children:
             stack = BoxLayout(
                         size_hint=(None,None),
-                        size=(card.width, (len(self.children))*card.height),
+                        size=(100, 300),
                         orientation='vertical')
             # print self.children[0].children
             for child in self.children[0].children: 
                 if type(child) is EditableLabel: 
+                    self.children[0].remove_widget(child)
                     stack.add_widget(child)
-                    title_label = child
             for child in self.children[0].children:
-                if type(child) is not BoxLayout and child != title_label: 
+                if type(child) is not BoxLayout and type(child) is not EditableLabel: 
                     stack.add_widget(Label(text=child.text, pos=child.pos, size_hint=(1,1/len(self.children)+1)))
                     # stack.remove_widget(child)
             stack.add_widget(card)
@@ -430,7 +441,7 @@ class KJMethod(FloatLayout):
         # inpt.bind(on_touch_up=show_keyboard())
         # KeyboardListener().setCallback(self.key_up)
         s.add_widget(inpt)
-        s.show_area()
+        # s.show_area()
         self.add_widget(s)
 
     def on_touch_up(self, touch):
@@ -460,6 +471,10 @@ class KJMethod(FloatLayout):
                                     print "collide LazySusan", child, child2.children
                                     Singleton(Card).add_card(child2.children[0].text)
                                     self.remove_widget(child2)
+                                    try: 
+                                        child2.children[0].textinput.hide_keyboard()
+                                    except AttributeError:
+                                        pass
                                 except AttributeError: 
                                     pass
 
@@ -481,7 +496,7 @@ class KJMethod(FloatLayout):
         super(KJMethod, self).__init__(**kwargs)
         self.bind(on_touch_down=self.save_touch_down)
         self.bind(on_touch_up=self.remove_touch_down)
-        self.bind(on_touch_move=self.remove_touch_down)
+        # self.bind(on_touch_move=self.remove_touch_down)
         try:
             filepath = os.path.join(os.path.dirname(__file__), 'kj-method.json')
             os.remove(filepath)
@@ -503,8 +518,8 @@ class KJSort(FloatLayout):
             for label in Singleton(Card).cards['default']:
                 added = False
                 while not added:
-                    pos_y=randint(100, Window.height-100)
-                    pos_x=randint(100, Window.width-100)
+                    pos_y=randint(100, Window.height)
+                    pos_x=randint(100, Window.width)
                     degree=self.compute_rotation(pos_x, pos_y)
                     if pos_x not in postions and \
                         pos_y not in postions:
@@ -571,6 +586,7 @@ class KJSort(FloatLayout):
         super(KJSort, self).__init__(**kwargs)
         update = self.add_labels
         Clock.schedule_interval(update, 0.5)
+        # self.show_area()
         
 
 
@@ -596,8 +612,8 @@ class KJMethodApp(App, ScreenManager):
         return self.sm
 
 #resolution settings
-Config.set('graphics', 'width', '1600')
-Config.set('graphics', 'height', '1200')
+Config.set('graphics', 'width', '1200')
+Config.set('graphics', 'height', '1048')
 Config.write()
 Window.fullscreen = True
 
@@ -605,11 +621,11 @@ Window.fullscreen = True
 kwad.attach()
 
 # ExceptionHandler implementation 
-class E(ExceptionHandler): 
-    def handle_exception(self, inst):
-        Logger.exception('Exception catched by ExceptionHandler')
-        return ExceptionManager.PASS
-ExceptionManager.add_handler(E())
+# class E(ExceptionHandler): 
+#     def handle_exception(self, inst):
+#         Logger.exception('Exception catched by ExceptionHandler')
+#         return ExceptionManager.PASS
+# ExceptionManager.add_handler(E())
 
 if __name__ == '__main__':
  	KJMethodApp().run()
