@@ -590,7 +590,7 @@ Config.write()
 #debug stuff 
 kwad.attach()
 
-ExceptionHandler implementation 
+# ExceptionHandler implementation 
 class E(ExceptionHandler): 
     def handle_exception(self, inst):
         Logger.exception('Exception catched by ExceptionHandler')
