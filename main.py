@@ -54,7 +54,7 @@ class Menu(Widget):
                 gesture = GestureStroke()
                 if t is not touch:
                     if gesture.points_distance(t, touch) <= 70: 
-                        print 'distance <= 70'
+                        print 'distance <= 100'
                         callback = partial(self.open_menu, touch, t)
                         Clock.schedule_once(callback, 0.5)
                         touch.ud['menu_event'] = callback
@@ -590,12 +590,12 @@ Config.write()
 #debug stuff 
 kwad.attach()
 
-# ExceptionHandler implementation 
-# class E(ExceptionHandler): 
-#     def handle_exception(self, inst):
-#         Logger.exception('Exception catched by ExceptionHandler')
-#         return ExceptionManager.PASS
-# ExceptionManager.add_handler(E())
+ExceptionHandler implementation 
+class E(ExceptionHandler): 
+    def handle_exception(self, inst):
+        Logger.exception('Exception catched by ExceptionHandler')
+        return ExceptionManager.PASS
+ExceptionManager.add_handler(E())
 
 if __name__ == '__main__':
  	KJMethodApp().run()
