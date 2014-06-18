@@ -13,7 +13,7 @@ from kivy.uix.widget import Widget
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
 
-from kivy.uix.relativelayout import RelativeLayout
+# from kivy.uix.relativelayout import RelativeLayout
 
 from kivy.uix.button import Button
 from kivy.uix.scatter import Scatter
@@ -23,17 +23,17 @@ from kivy.uix.label import Label
 from kivy.uix.screenmanager import Screen, ScreenManager, SlideTransition
 from kivy.properties import ObjectProperty, NumericProperty, ListProperty, BooleanProperty
 from functools import partial
-from kivy.base import EventLoop
-from kivy.base import EventLoopBase
+# from kivy.base import EventLoop
+# from kivy.base import EventLoopBase
 from kivy.base import ExceptionHandler
 from kivy.base import ExceptionManager
 
 from kivy.gesture import GestureStroke
-EventLoop.ensure_window()
+# EventLoop.ensure_window()
 
 from kivy.logger import Logger
 import math
-import os
+# import os
 import os.path
 import json
 from random import randint
@@ -350,6 +350,8 @@ class Card_Stack(Widget):
                     size_hint=(None, None), 
                     orientation='vertical') 
                     # pos=card1.pos)
+        title_label = EditableLabel(text='titel eingeben', size_hint=(None, None), size=(100, 50), keyboard_mode='managed')
+        stack.add_widget(title_label)
         stack.add_widget(card1)
         stack.add_widget(card2)
         with stack.canvas: 
@@ -359,14 +361,19 @@ class Card_Stack(Widget):
 
     def add_card_to_stack(self, card):
         print 'adding card to stack'
+        title_label = None
         if card not in self.children:
             stack = BoxLayout(
                         size_hint=(None,None),
                         size=(card.width, (len(self.children))*card.height),
                         orientation='vertical')
             print self.children[0].children
+            for child in self.children[0].children: 
+                if type(child) is EditableLabel: 
+                    stack.add_widget(child)
+                    title_label = child
             for child in self.children[0].children:
-                if type(child) is not BoxLayout: 
+                if type(child) is not BoxLayout and child != title_label: 
                     stack.add_widget(Label(text=child.text, pos=child.pos, size_hint=(1,1/len(self.children)+1)))
                     # stack.remove_widget(child)
             stack.add_widget(card)
@@ -461,12 +468,6 @@ class KJMethod(FloatLayout):
             open('kj-method.json', 'w')
         except Exception, e:
             pass
-        # try:
-        #     os.remove('./lazy.json')
-        #     open('lazy.json', 'w')
-        # except Exception, e:
-        #     pass
-
 
 # implementation Class for the second Screen
 class KJSort(FloatLayout): 
@@ -542,7 +543,6 @@ class KJSort(FloatLayout):
         y = (pos_y - Window.center[1])
         calc = math.degrees(math.atan2(y, x))
         return calc if calc > 0 else 360+calc
-        # self.lazy_angle = self.tmp + (new_angle-self.prev_angle)%360
 
     # init method
     def __init__(self, **kwargs): 
