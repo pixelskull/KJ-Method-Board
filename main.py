@@ -471,10 +471,8 @@ class KJMethod(FloatLayout):
                                     print "collide LazySusan", child, child2.children
                                     Singleton(Card).add_card(child2.children[0].text)
                                     self.remove_widget(child2)
-                                    try: 
-                                        child2.children[0].textinput.hide_keyboard()
-                                    except AttributeError:
-                                        pass
+                                    
+                                    child2.children[0].textinput.hide_keyboard()
                                 except AttributeError: 
                                     pass
 
@@ -572,8 +570,11 @@ class KJSort(FloatLayout):
 
     def add_to_stack(self, stack, card): 
         print 'add_card_to_stack'
-        stack.children[0].add_card_to_stack(Label(text=card.children[0].text, pos=stack.pos))
-        self.remove_widget(card)
+        try: 
+            stack.children[0].add_card_to_stack(Label(text=card.children[0].text, pos=stack.pos))
+            self.remove_widget(card)
+        except AttributeError: 
+            pass
 
     def compute_rotation(self, pos_x, pos_y): 
         x = (pos_x - Window.center[0])
@@ -612,10 +613,10 @@ class KJMethodApp(App, ScreenManager):
         return self.sm
 
 #resolution settings
-Config.set('graphics', 'width', '1200')
-Config.set('graphics', 'height', '1048')
+Config.set('graphics', 'width', '1600')
+Config.set('graphics', 'height', '1200')
 Config.write()
-Window.fullscreen = True
+# Window.fullscreen = True
 
 #debug stuff 
 kwad.attach()
