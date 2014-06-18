@@ -310,16 +310,16 @@ class Card():
         # with open('lazy.json', 'w') as outfile: 
         #     json.dump(self.cards['default'][-5:], outfile);
         if self.cards_changed is True:
-            main_json = open('kj-method.json', 'r+')
+            main_json = open('./kj-method.json', 'r+')
             main_data = None
             try:
                 main_data = json.load(main_json)
             except Exception, e:
                 pass
-            with open('kj-method.json', 'w') as outfile:
+            with open('./kj-method.json', 'w') as outfile:
                 json.dump(self.cards, outfile)
             self.cards_changed = False 
-        main_json = open('kj-method.json', 'r+')
+        main_json = open('./kj-method.json', 'r+')
         try:
             main_data = json.load(main_json)
             for item in main_data['default']:
@@ -465,7 +465,7 @@ class KJMethod(FloatLayout):
         self.bind(on_touch_move=self.remove_touch_down)
         try:
             os.remove('./kj-method.json')
-            open('kj-method.json', 'w')
+            open('./kj-method.json', 'w')
         except Exception, e:
             pass
 
