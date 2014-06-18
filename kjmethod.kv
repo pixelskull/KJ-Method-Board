@@ -8,6 +8,7 @@
 			Rectangle: 
 				size: root.size
 		LazySusan:
+			collide: collide
 			topic_label: topic_label
 			label1: label1
 			label2: label2
@@ -89,9 +90,15 @@
 					Rectangle: 
 						pos: self.pos
 						size: self.size
+		Widget:
+			id: collide 
+			size_hint: None, None
+			size: 0.08*root.size[0], 0.08*root.size[0]
+			center: root.center
 		Menu:
 			size_hint: None, None
 			size: root.size
+
 
 <KJSortScreen>:
 	KJSort:

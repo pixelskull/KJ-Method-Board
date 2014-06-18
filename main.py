@@ -54,7 +54,7 @@ class Menu(Widget):
                 gesture = GestureStroke()
                 if t is not touch:
                     if gesture.points_distance(t, touch) <= 70: 
-                        print 'distance <= 100'
+                        print 'distance <= 120'
                         callback = partial(self.open_menu, touch, t)
                         Clock.schedule_once(callback, 0.5)
                         touch.ud['menu_event'] = callback
@@ -216,6 +216,7 @@ class LazySusan(Widget):
         update = self.sync_entrys_in_lazy_susan
         Clock.schedule_interval(update, 0.01)
         self.color = (1,1,1,0.2)
+        # self.show_area()
 
 
 # Class for label that is editable 
@@ -268,7 +269,7 @@ class EditableLabel(Label):
     def on_text_focus(self, instance, focus):
         if self.textinput.text == "touch me":
             self.textinput.text = ""
-        if focus is False or self.edit is False:
+        if focus is False:# or self.edit is False:
             if self.textinput.text == "":
                 self.textinput.text = "touch me"
             else: 
@@ -280,6 +281,7 @@ class EditableLabel(Label):
 
     def __init__(self, **kwargs):
         super(EditableLabel, self).__init__(**kwargs)
+        self.show_area()
 
 
 # dummy implementation for saving Cards 
@@ -372,7 +374,7 @@ class Card_Stack(Widget):
                         size_hint=(None,None),
                         size=(card.width, (len(self.children))*card.height),
                         orientation='vertical')
-            print self.children[0].children
+            # print self.children[0].children
             for child in self.children[0].children: 
                 if type(child) is EditableLabel: 
                     stack.add_widget(child)
@@ -405,7 +407,7 @@ class KJMethod(FloatLayout):
     delete_scatter = BooleanProperty(False)
 
     touches = []
-
+    collide = ObjectProperty(Widget)
     delete_callback = None
 
 
@@ -418,7 +420,7 @@ class KJMethod(FloatLayout):
         print 'remove', touch
         if touch in self.touches:
             self.touches.remove(touch)
-            print self.touches
+            # print self.touches
 
     # add a label to KJMethod Screen 
     def add_label(self, widget, *args): 
@@ -428,6 +430,7 @@ class KJMethod(FloatLayout):
         # inpt.bind(on_touch_up=show_keyboard())
         # KeyboardListener().setCallback(self.key_up)
         s.add_widget(inpt)
+        s.show_area()
         self.add_widget(s)
 
     def on_touch_up(self, touch):
@@ -438,21 +441,32 @@ class KJMethod(FloatLayout):
                 self.delete_scatter = True
                 remove_callback = partial(self.remove_widget_callback, child)
                 Clock.schedule_once(remove_callback, 3.)
+            collide = Widget(size_hint=(None,None),
+                                    size=(Window.width/10, Window.height/10),
+                                    center=Window.center)
+            collide.show_area()
             if type(child) is LazySusan: 
-                for child2 in self.children: 
-                    if child2.collide_widget(child) and \
+                for child2 in self.children:
+                    # print child2 
+                    
+                    # if collide.collide_widget(child2) and \
+                    if child2.collide_widget(collide) and \
                         type(child2) is not LazySusan  and \
                         type(child2) is not Menu: 
-                        if len(child2.children) >= 1: 
-                            try: 
-                                Singleton(Card).add_card(child2.children[0].text)
-                                self.remove_widget(child2)
-                            except AttributeError: 
-                                pass
+                        if len(child2.children) >= 1:
+                            print child2
+                            if type(child2.children[0]) is EditableLabel:
+                                try: 
+                                    print "collide LazySusan", child, child2.children
+                                    Singleton(Card).add_card(child2.children[0].text)
+                                    self.remove_widget(child2)
+                                except AttributeError: 
+                                    pass
 
     # removes (delete) an scatter 
     def remove_widget_callback(self, widget, *args):
         if self.delete_scatter and type(widget.children[0]) is not FloatLayout:
+            print "----------->remove widget"
             Singleton(Card).remove_card(widget.children[0].text) 
             self.remove_widget(widget)
             self.delete_scatter = False
@@ -582,10 +596,10 @@ class KJMethodApp(App, ScreenManager):
         return self.sm
 
 #resolution settings
-Config.set('graphics', 'width', '1280')
-Config.set('graphics', 'height', '1024')
+Config.set('graphics', 'width', '1600')
+Config.set('graphics', 'height', '1200')
 Config.write()
-# Window.fullscreen = True
+Window.fullscreen = True
 
 #debug stuff 
 kwad.attach()
