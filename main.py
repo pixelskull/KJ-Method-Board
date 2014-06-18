@@ -310,16 +310,21 @@ class Card():
         # with open('lazy.json', 'w') as outfile: 
         #     json.dump(self.cards['default'][-5:], outfile);
         if self.cards_changed is True:
-            main_json = open('./kj-method.json', 'r+')
+            filepath = os.path.join(os.path.dirname(__file__), 'kj-method.json')
+            main_json = open(filepath, 'r+')
+            # main_json = open('./kj-method.json', 'r+')
             main_data = None
             try:
                 main_data = json.load(main_json)
             except Exception, e:
                 pass
-            with open('./kj-method.json', 'w') as outfile:
+            # with open('./kj-method.json', 'w') as outfile:
+            with open(filepath, 'w') as outfile: 
                 json.dump(self.cards, outfile)
             self.cards_changed = False 
-        main_json = open('./kj-method.json', 'r+')
+        filepath = os.path.join(os.path.dirname(__file__), 'kj-method.json')
+        # main_json = open('./kj-method.json', 'r+')
+        main_json = open(filepath, 'r+')
         try:
             main_data = json.load(main_json)
             for item in main_data['default']:
@@ -464,8 +469,11 @@ class KJMethod(FloatLayout):
         self.bind(on_touch_up=self.remove_touch_down)
         self.bind(on_touch_move=self.remove_touch_down)
         try:
-            os.remove('./kj-method.json')
-            open('./kj-method.json', 'w')
+            filepath = os.path.join(os.path.dirname(__file__), 'kj-method.json')
+            os.remove(filepath)
+            open(filepath, 'w')
+            # os.remove('./kj-method.json')
+            # open('./kj-method.json', 'w')
         except Exception, e:
             pass
 
