@@ -649,27 +649,41 @@ class KJSort(FloatLayout):
             for label in Singleton(Card).cards['default']:
                 added = False
                 while not added:
-                    pos_y=randint(100, Window.height)
-                    pos_x=randint(100, Window.width)
+                    pos_y=randint(100, self.top-100)
+                    pos_x=randint(100, self.right-100)
                     degree=self.compute_rotation(pos_x, pos_y)
-                    if pos_x not in postions and \
-                        pos_y not in postions and \
-                        pos_x >= self.x and \
-                        pos_x <= self.right and \
-                        pos_y >= self.y and \
-                        pos_y <= self.top:
-                        s = Scatter(
-                                size_hint=(None,None), 
-                                size=(100,50), 
-                                pos=(pos_x, pos_y),
-                                rotation=degree+90 
-                            )
-                        print 'added label: ' + label
-                        self.compute_rotation(pos_x, pos_y)
-                        inpt = Label(text=label, size_hint=(None,None), size=(100,50), keyboard_mode='managed')
-                        s.add_widget(inpt)
-                        self.add_widget(s)
-                        added = True
+                    if pos_x >= self.x+100 and \
+                        pos_x <= self.right-100 and \
+                        pos_y >= self.y+100 and \
+                        pos_y <= self.top-100:
+                        if len(self.children) == 0: 
+                            s = Scatter(
+                                    size_hint=(None,None), 
+                                    size=(100,50), 
+                                    center=(pos_x, pos_y),
+                                    rotation=degree+90 
+                                )
+                            print 'added label: ' + label
+                            self.compute_rotation(pos_x, pos_y)
+                            inpt = Label(text=label, size_hint=(None,None), size=(100,50), keyboard_mode='managed')
+                            s.add_widget(inpt)
+                            self.add_widget(s)
+                            added = True
+                        else: 
+                            for child in self.children: 
+                                if not child.collide_point(pos_x, pos_y) and added is False:
+                                    s = Scatter(
+                                        size_hint=(None,None), 
+                                        size=(100,50), 
+                                        center=(pos_x, pos_y),
+                                        rotation=degree+90 
+                                    )
+                                    print 'added label: ' + label
+                                    self.compute_rotation(pos_x, pos_y)
+                                    inpt = Label(text=label, size_hint=(None,None), size=(100,50), keyboard_mode='managed')
+                                    s.add_widget(inpt)
+                                    self.add_widget(s)
+                                    added = True
                     else: 
                         added = False 
             self.labelset = True
