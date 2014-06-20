@@ -228,11 +228,11 @@ class EditableLabel(Label):
             self.edit = True
         return super(EditableLabel, self).on_touch_down(touch)
 
-    # def on_touch_move(self, touch):
-    #     try: 
-    #         self.textinput.hide_keyboard()
-    #     except AttributeError:
-    #         pass 
+    def on_touch_move(self, touch):
+        try: 
+            self.textinput.hide_keyboard()
+        except AttributeError:
+            pass 
 
     # called when touch is removed  
     # def on_touch_up(self, touch):
@@ -287,7 +287,10 @@ class EditableLabel(Label):
 
     def __init__(self, **kwargs):
         super(EditableLabel, self).__init__(**kwargs)
-        self.show_area()
+        with self.canvas.before: 
+            Color(1,1,1,0.2)
+            Rectangle(size=self.size)
+        # self.show_area()
         
 
 
@@ -628,7 +631,7 @@ class KJSort(FloatLayout):
                     )
         scatter.add_widget(stack)
         self.add_widget(scatter)
-        scatter.show_area()
+        # scatter.show_area()
 
         # stack = Card_Stack()
         # stack.new_stack(
@@ -678,7 +681,7 @@ class KJSort(FloatLayout):
                     )
         scatter.add_widget(new_stack)
         self.add_widget(scatter)
-        scatter.show_area()
+        # scatter.show_area()
 
         # print 'add_card_to_stack'
         # try: 
@@ -724,10 +727,16 @@ class KJMethodApp(App, ScreenManager):
         # self.sm.add_widget(KJSortScreen(name='sort'))
         return self.sm
 
+    # def build_config(self, config): 
+    #     pass
+
 #resolution settings
 Config.set('graphics', 'width', '1600')
 Config.set('graphics', 'height', '1200')
+Config.set('postproc','jitter_distance', '0.004')
+Config.set('postproc', 'jitter_ignore_devices', 'mouse, mactouch')
 Config.write()
+# Config.read()
 # Window.fullscreen = True
 
 #debug stuff 
