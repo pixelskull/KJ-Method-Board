@@ -132,7 +132,7 @@ class Menu(Widget):
                         size_hint=(None,None), 
                         size=(buttonsize, buttonsize), 
                         background_color=(1,1,1,0),
-                        on_release=self.change_view)
+                        on_release=partial(self.change_view, scatter))
         layout.add_widget(button2)
 
         button3 = Button(text='input',
@@ -140,7 +140,7 @@ class Menu(Widget):
                         size_hint=(None, None),
                         size=(buttonsize, buttonsize),
                         background_color=(1, 1, 1, 0),
-                        on_release=partial(self.parent.add_label,scatter)) 
+                        on_release=partial(self.new_label, scatter)) 
         layout.add_widget(button3)
 
         self.add_widget(scatter)
@@ -181,25 +181,52 @@ class Menu(Widget):
         scatter.add_widget(layout)
 
         scatter.bind(on_touch_move=self.update_menu_rotation)
+        scatter.bind(on_touch_up=self.enable_buttons)
 
         # update_menu_callback = partial(self.update_menu_rotation, scatter)
         # Clock.schedule_interval(update_menu_callback, 0.01)
 
 
     def update_menu_rotation(self, widget, touch, *args):
+        for button in widget.children[0].children:
+            button.disabled = True
+        if not touch.ud.has_key('is_rotated'):
+            touch.ud['is_rotated'] = True
         if widget.collide_point(touch.x, touch.y):
-            if  not touch.ud.has_key('prev_angle'): 
+            if not touch.ud.has_key('prev_angle'): 
                 touch.ud['prev_angle'] = self.compute_prev_angle(widget, touch)
             widget.rotation = self.compute_rotation(widget, touch)
+        else: 
+            for button in widget.children[0].children:
+                button.disabled = False
         # menu_scatter.rotation = self.degree%360
+
+    def enable_buttons(self, widget, touch, *args):
+        for button in widget.children[0].children: 
+            button.disabled = False
 
     # method for closing menu
     def close_menu(self, widget, *args):
-        self.remove_widget(widget)
+        if widget.children[0].children[0].disabled is False:
+            self.remove_widget(widget)
+        else: 
+            for button in widget.children[0].children:
+                button.disabled = False
 
     # method for changeing view 
-    def change_view(self, *args):
-        self.app.sm.switch_to(KJSortScreen(name='sort'))
+    def change_view(self, widget, *args):
+        if widget.children[0].children[0].disabled is False:
+            self.app.sm.switch_to(KJSortScreen(name='sort'))
+        else: 
+            for button in widget.children[0].children: 
+                button.disabled = False
+
+    def new_label(self, widget, *args): 
+        if widget.children[0].children[0].disabled is False: 
+            self.parent.add_label(widget)
+        else: 
+            for button in widget.children[0].children: 
+                button.disabled = False
 
     # initialisation method
     def __init__(self, **kwargs): #, parent
