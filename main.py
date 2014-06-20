@@ -54,10 +54,7 @@ class Menu(Widget):
                 gesture = GestureStroke()
                 if t is not touch:
                     if gesture.points_distance(t, touch) <= 160: 
-                        # print 'distance <= 300'
-                        callback = partial(self.open_menu, touch, t)
-                        Clock.schedule_once(callback, 0.5)
-                        touch.ud['menu_event'] = callback
+                        self.open_menu(touch, t)
 
 
     # delete touch when finger is lifted 
@@ -360,47 +357,95 @@ def Singleton(instanceClass):
 
 # Class for Stacks in Second Screen
 class Card_Stack(Widget):
+    entry_counter = NumericProperty(0)
 
-    def new_stack(self, card1, card2):
-        print 'create new stack'
-        
-                    # pos=card1.pos)
-        title_label = EditableLabel(text='titel eingeben', size_hint=(None, None), size=(100, 50), keyboard_mode='managed')
+    def create_stack(self, cardlist, title_label):
+        print "len(cardlist) -> ", len(cardlist)
+        print "cardlist -> ", cardlist
+
+        editlabel = EditableLabel(
+                        text='KategorieTitel', 
+                        size_hint=(None,None),
+                        size=(150, 50),
+                        keyboard_mode='managed'
+                    )
+
         stack = BoxLayout(
-                    size_hint=(None, None),
-                    size=(100, 300), 
-                    orientation='vertical') 
+                    size_hint=(None,None),
+                    size=(150, 50*(len(cardlist)+1)),
+                    orientation='vertical',
+                    padding=(20,20,20,20)
+                )
         stack.add_widget(title_label)
-        stack.add_widget(card1)
-        stack.add_widget(card2)
-        with stack.canvas: 
+        for card in cardlist: stack.add_widget(card) 
+
+        with stack.canvas.before: 
             Color(1,1,1,.2)
             Rectangle(size=stack.size)
+
         self.add_widget(stack)
 
-    def add_card_to_stack(self, card):
-        print 'adding card to stack'
-        if card not in self.children:
-            stack = BoxLayout(
-                        size_hint=(None,None),
-                        size=(100, 300),
-                        orientation='vertical')
-            # print self.children[0].children
-            for child in self.children[0].children: 
-                if type(child) is EditableLabel: 
-                    self.children[0].remove_widget(child)
-                    stack.add_widget(child)
-            for child in self.children[0].children:
-                if type(child) is not BoxLayout and type(child) is not EditableLabel: 
-                    stack.add_widget(Label(text=child.text, pos=child.pos, size_hint=(1,1/len(self.children)+1)))
-                    # stack.remove_widget(child)
-            stack.add_widget(card)
-            with stack.canvas:
-                Color(1,1,1,.2)
-                Rectangle(size=stack.size)
-            self.remove_widget(self.children[0])
-            self.add_widget(stack)
-            self.canvas.ask_update()
+
+
+    # def new_stack(self, card1, card2):
+    #     print 'create new stack'
+    #     print 'card1: ', card1.text
+    #     print 'card2: ', card2.text
+    #     self.entry_counter = 2
+    #     title_label = EditableLabel(text='titel eingeben', size_hint=(None, None), size=(100, 50), keyboard_mode='managed')
+    #     stack = BoxLayout(
+    #                 size_hint=(None, None),
+    #                 size=(150, 50*self.entry_counter), 
+    #                 orientation='vertical',
+    #                 background_color=(1,1,1,0)) 
+    #     # stack.add_widget(title_label)
+        
+    #     with stack.canvas: 
+    #         Color(1,0,0,.2)
+    #         Rectangle(size=stack.size)
+    #     self.add_widget(stack)
+
+    #     # with card1.canvas:
+    #     #     Color(0,1,0,.2)
+    #     #     Rectangle(size=card1.size)
+
+    #     # with card2.canvas: 
+    #     #     Color(0,0,1,.2)
+    #     #     Rectangle(size=card2.size)
+
+    #     stack.add_widget(card1)
+    #     stack.add_widget(card2)
+
+    # def add_card_to_stack(self, card):
+    #     print 'adding card to stack'
+    #     print card 
+    #     print self
+    #     self.entry_counter += 1
+    #     if card not in self.children:
+    #         stack = BoxLayout(
+    #                     size_hint=(None,None),
+    #                     size=(100, 50*self.entry_counter),
+    #                     orientation='vertical')
+    #         # print self.children[0].children
+    #         for child in self.children[0].children: 
+    #             if type(child) is EditableLabel: 
+    #                 self.children[0].remove_widget(child)
+    #                 stack.add_widget(child)
+    #         for child in self.children[0].children:
+    #             if type(child) is not BoxLayout and type(child) is not EditableLabel: 
+    #                 new_card = Label(text=child.text, pos=child.pos, size_hint=(1,1/len(self.children)+1))
+    #                 stack.add_widget(new_card)
+    #                 # with new_card.canvas.before: 
+    #                 #     Color(1,1,1,.2)
+    #                 # stack.remove_widget(child)
+    #                     # Rectangle(size=child.size)
+    #         stack.add_widget(card)
+    #         with stack.canvas:
+    #             Color(1,1,1,.2)
+    #             Rectangle(size=stack.size)
+    #         self.remove_widget(self.children[0])
+    #         self.add_widget(stack)
+    #         # self.canvas.ask_update()
 
     def remove_card_from_stack(self, stack, card): # TODO on long touch remove the label 
         pass # stack.remove_widget(card)
@@ -520,7 +565,11 @@ class KJSort(FloatLayout):
                     pos_x=randint(100, Window.width)
                     degree=self.compute_rotation(pos_x, pos_y)
                     if pos_x not in postions and \
-                        pos_y not in postions:
+                        pos_y not in postions and \
+                        pos_x >= self.x and \
+                        pos_x <= self.right and \
+                        pos_y >= self.y and \
+                        pos_y <= self.top:
                         s = Scatter(
                                 size_hint=(None,None), 
                                 size=(100,50), 
@@ -539,12 +588,13 @@ class KJSort(FloatLayout):
 
     def on_touch_up(self, touch): 
         for child in self.children: 
+            print child
             if type(child.children[0]) is Label:
                 for child2 in self.children: 
                     if child2.collide_widget(child) and child is not child2: 
                         if type(child2.children[0]) is Label: 
                             self.create_stack(child, child2)
-            if type(child.children[0]) is Card_Stack:
+            elif type(child.children[0]) is Card_Stack:
                 for child2 in self.children: 
                     if child2.collide_widget(child) and child is not child2: 
                         if type(child2.children[0] is Label):
@@ -552,29 +602,91 @@ class KJSort(FloatLayout):
 
 
     def create_stack(self, card1, card2): 
-        stack = Card_Stack()
-        stack.new_stack(
-                    Label(text=card1.children[0].text, pos=card1.pos),
-                    Label(text=card2.children[0].text, pos=card1.pos)
-                )
         degree = self.compute_rotation(card1.pos[0], card1.pos[1])
-        scatter = Scatter(
-                    size_hint=(None, None), 
-                    pos=card1.pos, 
-                    rotation=degree+90
-                )
-        scatter.add_widget(stack)
-        self.add_widget(scatter)
+        cardlist = [card1.children[0], card2.children[0]]
+        card1.clear_widgets()
+        card2.clear_widgets()
         self.remove_widget(card1)
         self.remove_widget(card2)
 
-    def add_to_stack(self, stack, card): 
-        print 'add_card_to_stack'
-        try: 
-            stack.children[0].add_card_to_stack(Label(text=card.children[0].text, pos=stack.pos))
-            self.remove_widget(card)
-        except AttributeError: 
-            pass
+        title_label = EditableLabel(
+                            text='KategorieTitel', 
+                            size_hint=(None,None),
+                            size=(150, 50),
+                            keyboard_mode='managed'
+                        )
+        
+        stack = Card_Stack()
+        stack.create_stack(cardlist, title_label)
+        print stack.children[0] 
+        print "stack size: ", stack.size
+        scatter = Scatter(
+                        size_hint=(None,None), 
+                        size=stack.children[0].size, 
+                        pos=card1.pos,
+                        rotation=degree+90
+                    )
+        scatter.add_widget(stack)
+        self.add_widget(scatter)
+        scatter.show_area()
+
+        # stack = Card_Stack()
+        # stack.new_stack(
+        #             Label(text=card1.children[0].text, pos=card1.pos),
+        #             Label(text=card2.children[0].text, pos=card1.pos)
+        #         )
+        # degree = self.compute_rotation(card1.pos[0], card1.pos[1])
+        # scatter = Scatter(
+        #             size_hint=(None, None),
+        #             # size=(stack.width+10, stack.height+10),
+        #             pos=card1.pos, 
+        #             rotation=degree+90
+        #         )
+        # scatter.add_widget(stack)
+        # self.add_widget(scatter)
+        # self.remove_widget(card1)
+        # self.remove_widget(card2)
+
+    def add_to_stack(self, stack, card):
+        degree = self.compute_rotation(stack.x, stack.y)
+        cardlist = []
+        title_label = ObjectProperty(EditableLabel)
+
+        cardlist.append(card.children[0])
+        for layout_card in stack.children[0].children[0].children: 
+            print "layout_card", layout_card.text
+            print len(layout_card.parent.children)
+            if type(layout_card) is EditableLabel: 
+                title_label = layout_card
+            else:
+                cardlist.append(layout_card)
+
+        card.clear_widgets()
+        self.remove_widget(card)
+        stack.children[0].children[0].clear_widgets()
+        self.remove_widget(stack)
+
+        new_stack = Card_Stack()
+        new_stack.create_stack(cardlist, title_label)
+        print new_stack.children[0]
+        print "size of new Stack: ", new_stack.size
+        scatter = Scatter(
+                        size_hint=(None,None),
+                        size=new_stack.children[0].size,
+                        pos=stack.pos, 
+                        rotation=degree+90
+                    )
+        scatter.add_widget(new_stack)
+        self.add_widget(scatter)
+        scatter.show_area()
+
+        # print 'add_card_to_stack'
+        # try: 
+        #     new_card = Label(text=card.children[0].text, pos=stack.pos)
+        #     stack.children[0].add_card_to_stack(new_card)
+        #     self.remove_widget(card)
+        # except AttributeError: 
+        #     pass
 
     def compute_rotation(self, pos_x, pos_y): 
         x = (pos_x - Window.center[0])
