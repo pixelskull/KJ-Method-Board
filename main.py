@@ -224,6 +224,7 @@ class Menu(Widget):
     def new_label(self, widget, *args): 
         if widget.children[0].children[0].disabled is False: 
             self.parent.add_label(widget)
+            self.close_menu(widget)
         else: 
             for button in widget.children[0].children: 
                 button.disabled = False
@@ -565,8 +566,11 @@ class KJMethod(FloatLayout):
 
     # add a label to KJMethod Screen 
     def add_label(self, widget, *args): 
-        degree = self.compute_rotation(widget.pos[0], widget.pos[1])
-        s = Scatter(size_hint=(None,None), pos=widget.pos, rotation=degree+110) # , size=(100,50)
+        degree = self.compute_rotation(widget.center_x, widget.center_y)
+        # degree = widget.rotation - 90
+        # scatter_pos = widget.pos
+
+        s = Scatter(size_hint=(None,None), center=widget.center, rotation=degree+110) # , size=(100,50)
         inpt = EditableLabel(text='touch me', size_hint=(None, None), size=(100, 50), keyboard_mode='managed')
         # inpt.bind(on_touch_up=show_keyboard())
         # KeyboardListener().setCallback(self.key_up)
@@ -589,7 +593,6 @@ class KJMethod(FloatLayout):
             if type(child) is LazySusan: 
                 for child2 in self.children:
                     # print child2 
-                    
                     # if collide.collide_widget(child2) and \
                     if child2.collide_widget(collide) and \
                         type(child2) is not LazySusan  and \
