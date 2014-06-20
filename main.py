@@ -46,6 +46,7 @@ class Menu(Widget):
     touches = []
     app = None;
     degree = NumericProperty(0)
+    tmp = None
 
     # save each touch in list for detecting two-finger-touch 
     def save_touch_down(self, instance, touch):
@@ -63,11 +64,49 @@ class Menu(Widget):
             if touch.ud['menu_event'] is not None:
                 Clock.unschedule(touch.ud['menu_event'])
 
-    def compute_rotation(self, pos_x, pos_y):
+    def compute_degree(self, pos_x, pos_y):
         x = (pos_x - Window.center[0])
         y = (pos_y - Window.center[1])
         calc = math.degrees(math.atan2(y, x))
-        return calc if calc > 0 else 360+calc
+        self.degree =  calc if calc > 0 else 360+calc
+        self.degree += 90
+
+    def compute_rotation(self, widget, touch):
+        if widget.collide_point(touch.x, touch.y): 
+            x = (touch.x - widget.center_x)
+            y = (touch.y - widget.center_y)
+            calc = math.degrees(math.atan2(y,x))
+            new_angle = calc if calc > 0 else 360+calc
+            return touch.ud['tmp'] + (new_angle-touch.ud['prev_angle'])%360
+
+    def compute_prev_angle(self, widget, touch):
+        if widget.collide_point(touch.x, touch.y): 
+            x = touch.x - widget.center_x
+            y = touch.y - widget.center_y
+            calc = math.degrees(math.atan2(y,x))
+            if not touch.ud.has_key('tmp'):
+                touch.ud['tmp'] = widget.rotation
+            return calc if calc > 0 else 360+calc
+
+    # # called when finger touch is detected 
+    # def on_touch_down(self, touch):
+    #     print "touch_down ", self.degree
+    #     if self.collide_point(touch.pos[0], touch.pos[1]):
+    #         x = (touch.x - self.center[0])
+    #         y = (touch.y - self.center[1])
+    #         calc = math.degrees(math.atan2(y, x))
+    #         self.prev_angle = calc if calc > 0 else 360+calc
+    #         self.tmp = self.degree
+
+    # # called when finger is moving 
+    # def on_touch_move(self, touch):
+    #     print "on_touch_move ", self.degree
+    #     if self.collide_point(touch.pos[0], touch.pos[1]) and self.tmp is not None:
+    #         x = (touch.x - self.center[0])
+    #         y = (touch.y - self.center[1])
+    #         calc = math.degrees(math.atan2(y, x))
+    #         new_angle = calc if calc > 0 else 360+calc
+    #         self.degree = self.tmp + (new_angle-self.prev_angle)%360
 
     def open_menu(self, touch1, touch2, *args):
         circlesize = 120
@@ -76,21 +115,24 @@ class Menu(Widget):
         layout = FloatLayout(size_hint=(None,None), size=(circlesize,circlesize))
 
         scatter = Scatter(size=layout.size, center=touch2.pos, do_scale=False, do_translation=False)
-        scatter.rotation = self.compute_rotation(scatter.center_x, scatter.center_y)+90 
+        self.compute_degree(scatter.center_x, scatter.center_y)
+        scatter.rotation = self.degree
+
+        # self.bind(on_degree=partial(self.update_menu_rotation, scatter))
 
         button1 = Button(text='close',
                         pos_hint={'x':0.2,'y':0.0},
                         size_hint=(None, None),
                         size=(buttonsize, buttonsize),
                         background_color=(1, 1, 1, 0), 
-                        on_press=partial(self.close_menu, scatter))
+                        on_release=partial(self.close_menu, scatter))
 
         button2 = Button(text='done',
                         pos_hint={'x':0.5, 'y':0.5},
                         size_hint=(None,None), 
                         size=(buttonsize, buttonsize), 
                         background_color=(1,1,1,0),
-                        on_press=self.change_view)
+                        on_release=self.change_view)
         layout.add_widget(button2)
 
         button3 = Button(text='input',
@@ -98,7 +140,7 @@ class Menu(Widget):
                         size_hint=(None, None),
                         size=(buttonsize, buttonsize),
                         background_color=(1, 1, 1, 0),
-                        on_press=partial(self.parent.add_label,scatter)) 
+                        on_release=partial(self.parent.add_label,scatter)) 
         layout.add_widget(button3)
 
         self.add_widget(scatter)
@@ -130,13 +172,26 @@ class Menu(Widget):
                 angle_end=360
                 )
 
-        if touch1 in self.touches: 
+        if touch1 in self.parent.touches: 
             self.parent.touches.remove(touch1)
-        if touch2 in self.touches: 
+        if touch2 in self.parent.touches: 
             self.parent.touches.remove(touch2)
 
         layout.add_widget(button1)
         scatter.add_widget(layout)
+
+        scatter.bind(on_touch_move=self.update_menu_rotation)
+
+        # update_menu_callback = partial(self.update_menu_rotation, scatter)
+        # Clock.schedule_interval(update_menu_callback, 0.01)
+
+
+    def update_menu_rotation(self, widget, touch, *args):
+        if widget.collide_point(touch.x, touch.y):
+            if  not touch.ud.has_key('prev_angle'): 
+                touch.ud['prev_angle'] = self.compute_prev_angle(widget, touch)
+            widget.rotation = self.compute_rotation(widget, touch)
+        # menu_scatter.rotation = self.degree%360
 
     # method for closing menu
     def close_menu(self, widget, *args):
