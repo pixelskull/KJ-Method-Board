@@ -655,16 +655,23 @@ class KJSort(FloatLayout):
                         if len(self.children) == 0: 
                             s = Scatter(
                                     size_hint=(None,None), 
-                                    size=(100,50), 
+                                    size=(150,50), 
                                     center=(pos_x, pos_y),
                                     rotation=degree+90 
                                 )
                             print 'added label: ' + label
                             self.compute_rotation(pos_x, pos_y)
-                            inpt = Label(text=label, size_hint=(None,None), size=(100,50), keyboard_mode='managed')
+                            inpt = Label(text=label, 
+                                            size_hint=(None,None),
+                                            size=(150,50), 
+                                            keyboard_mode='managed',
+                                            text_size=(150,None),
+                                            max_lines=3,
+                                            line_height=0.5)
                             with inpt.canvas: 
                                 Color(1,1,1,0.2)
                                 Rectangle(size=inpt.size)
+                            # inpt.bind(text_size=inpt.size)
                             s.add_widget(inpt)
                             self.add_widget(s)
                             added = True
@@ -673,16 +680,23 @@ class KJSort(FloatLayout):
                                 if not child.collide_point(pos_x, pos_y) and added is False:
                                     s = Scatter(
                                         size_hint=(None,None), 
-                                        size=(100,50), 
+                                        size=(150,50), 
                                         center=(pos_x, pos_y),
                                         rotation=degree+90 
                                     )
                                     print 'added label: ' + label
                                     self.compute_rotation(pos_x, pos_y)
-                                    inpt = Label(text=label, size_hint=(None,None), size=(100,50), keyboard_mode='managed')
+                                    inpt = Label(text=label, 
+                                                    size_hint=(None,None), 
+                                                    size=(150,50), 
+                                                    keyboard_mode='managed',
+                                                    text_size=(150,None),
+                                                    max_lines=3,
+                                                    line_height=0.5)
                                     with inpt.canvas: 
                                         Color(1,1,1,0.2)
                                         Rectangle(size=inpt.size)
+                                    # inpt.bind(text_size=inpt.size)
                                     s.add_widget(inpt)
                                     self.add_widget(s)
                                     added = True
