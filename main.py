@@ -327,6 +327,7 @@ class EditableLabel(Label):
     edit = BooleanProperty(False)
     move = BooleanProperty(False)
     textinput = ObjectProperty(None, allownone=True)
+    old_text = None 
 
     # called when touch is detected 
     def on_touch_down(self, touch):
@@ -353,6 +354,7 @@ class EditableLabel(Label):
                 self.remove_widget(self.textinput)
             return
         if not self.textinput:
+            self.old_text = self.text
             self.textinput = t = TextInput(
                 text=self.text, 
                 size_hint=(None, None),
@@ -379,15 +381,19 @@ class EditableLabel(Label):
 
     # called when label has focus (touch on label)
     def on_text_focus(self, instance, focus):
+        old_categorie_name = self.text
         if self.textinput.text == "touch me" or \
-            self.textinput.text == "KategorieTitel" or \
-            self.textinput.text == "empty":
+                "KategorieTitel" in self.textinput.text or \
+                self.textinput.text == "empty":
             self.textinput.text = ""
         if focus is False or self.edit is False:
             if self.textinput.text == "":
                 self.textinput.text = "empty"
             else: 
                 self.text = instance.text
+                if type(self.parent) is BoxLayout:
+                    Singleton(Card).rename_categorie(self.old_text, instance.text)
+                    print Singleton(Card).cards
             self.edit = False
             self.textinput.hide_keyboard() 
         else:
@@ -395,9 +401,6 @@ class EditableLabel(Label):
 
     def __init__(self, **kwargs):
         super(EditableLabel, self).__init__(**kwargs)
-        # with self.canvas.before: 
-        #     Color(1,1,1,0.2)
-        #     Rectangle(size=self.size)
         self.show_area(color=(1,1,1,0.2))
         
 
@@ -417,12 +420,39 @@ class Card():
                 self.cards['default'].append(label)
                 self.cards_changed = True
 
+    def add_card_to_categorie(self, label, categorie): 
+        if not self.cards.has_key(categorie): 
+            self.add_categorie(categorie)
+        self.cards[categorie].append(label)
+        self.cards_changed = True
+
+    def add_categorie(self, categorie): 
+        self.cards[categorie] = [] 
+        self.cards_changed = True
+
     # removes a card to cards-list 
     def remove_card(self, label):
+        print "remove form cards: ", label 
         if label in self.cards['default']:
             if label is not '':  
                 self.cards['default'].remove(label)
+                print "removed form cards: ", label 
                 self.cards_changed = True
+
+    def remove_card_from_categorie(self, label, categorie): 
+        if self.cards.has_key(categorie): 
+            self.cards[categorie].remove(label)
+            if len(self.cards[categorie]) == 0: 
+                self.remove_categorie(categorie)
+                self.cards_changed = True 
+
+    def remove_categorie(self, categorie): 
+        self.cards.pop(categorie, None) 
+        self.cards_changed = True
+
+    def rename_categorie(self, old_name, new_name):
+        self.cards[new_name] = self.cards.pop(old_name, [])
+        self.cards_changed = True
 
     # syncronising Cards with Json files 
     def sync_cards_withFiles(self, widget, *args):
@@ -606,6 +636,7 @@ class KJMethod(FloatLayout):
 class KJSort(FloatLayout): 
     labelset = True
     _instance = None
+    card_stack_counter = NumericProperty(0)
 
     # method for adding all cards to second screen  (at the moment only one label ist added)
     def add_labels(self, widget, **args): 
@@ -680,6 +711,7 @@ class KJSort(FloatLayout):
 
 
     def create_stack(self, card1, card2):
+        self.card_stack_counter += 1
         degree = self.compute_rotation(card1.pos[0], card1.pos[1])
         card1.children[0].canvas.remove(Rectangle(size=card1.children[0].size))
         card2.children[0].canvas.remove(Rectangle(size=card2.children[0].size))
@@ -693,7 +725,7 @@ class KJSort(FloatLayout):
         self.remove_widget(card2)
 
         title_label = EditableLabel(
-                            text='KategorieTitel', 
+                            text='KategorieTitel'+str(self.card_stack_counter), 
                             size_hint=(None,None),
                             size=(150, 50),
                             keyboard_mode='managed'
@@ -711,6 +743,14 @@ class KJSort(FloatLayout):
                     )
         scatter.add_widget(stack)
         self.add_widget(scatter)
+
+        Singleton(Card).remove_card(c1.text)
+        Singleton(Card).remove_card(c2.text)
+        Singleton(Card).add_card_to_categorie(c1.text, title_label.text)
+        Singleton(Card).add_card_to_categorie(c2.text, title_label.text)
+
+        print Singleton(Card).cards
+
         # scatter.show_area()
 
         # stack = Card_Stack()
@@ -764,6 +804,11 @@ class KJSort(FloatLayout):
                     )
         scatter.add_widget(new_stack)
         self.add_widget(scatter)
+
+        Singleton(Card).remove_card(c.text)
+        Singleton(Card).add_card_to_categorie(c.text, title_label.text)
+
+        print Singleton(Card).cards
         # scatter.show_area()
 
         # print 'add_card_to_stack'
