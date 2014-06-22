@@ -173,7 +173,7 @@ class Menu(Widget):
             size=(300, 300))
 
         with blayout.canvas.before:
-            Color(0, 0, 0, 0.8)
+            Color(1, 1, 1, .5)
             Rectangle(
                 size_hint=(None,None),
                 size= blayout.size
@@ -185,9 +185,11 @@ class Menu(Widget):
                         size=blayout.size, 
                         center=self.parent.center, 
                         do_scale=False, 
-                        do_translation=False
+                        do_translation=False,
+                        pos=((Window.width/2)-(blayout.size[0]/2), (Window.height/2)-(blayout.size[1]/2))
                     )
-        l = Label(text='Nächstes Fenster \naufrufen?', size=blayout.size)
+
+        l = Label(text='[color=000000]Nächstes Fenster aufrufen?[/color]', size=blayout.size, markup = True)
 
         layout2 = BoxLayout(
             orientation='horizontal',
