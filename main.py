@@ -101,14 +101,14 @@ class Menu(Widget):
         # self.bind(on_degree=partial(self.update_menu_rotation, scatter))
 
         button1 = Button(text='close',
-                        pos_hint={'x':0.2,'y':0.0},
+                        pos_hint={'x':0.25,'y':0.0},
                         size_hint=(None, None),
                         size=(buttonsize, buttonsize),
-                        background_color=(1, 1, 1, 0), 
+                        background_color=(1, 1, 1, 0),
                         on_release=partial(self.close_menu, scatter))
 
         button2 = Button(text='done',
-                        pos_hint={'x':0.5, 'y':0.5},
+                        pos_hint={'x':0.55, 'y':0.4},
                         size_hint=(None,None), 
                         size=(buttonsize, buttonsize), 
                         background_color=(1,1,1,0),
@@ -116,7 +116,7 @@ class Menu(Widget):
         layout.add_widget(button2)
 
         button3 = Button(text='input',
-                        pos_hint={'x':0.0,'y':0.5},
+                        pos_hint={'x':0.05,'y':0.4},
                         size_hint=(None, None),
                         size=(buttonsize, buttonsize),
                         background_color=(1, 1, 1, 0),
@@ -126,21 +126,21 @@ class Menu(Widget):
         self.add_widget(scatter)
 
         with button1.canvas.before: 
-            Color(1,1,0,0.2)
+            Color(1,1,1,0.2)
             Ellipse(
                 size_hint=(None, None),
                 size=(circlesize, circlesize), 
-                angle_start=240, 
-                angle_end=120 
+                angle_start=238,
+                angle_end=122
                 )
 
         with button2.canvas.before: 
-            Color(1,1,0.5,0.2)
+            Color(1,1,1,0.2)
             Ellipse(
                 size_hint=(None, None),
                 size=(circlesize, circlesize), 
-                angle_start=0, 
-                angle_end=120 
+                angle_start=2,
+                angle_end=118
                 )
 
         with button3.canvas.before: 
@@ -148,8 +148,8 @@ class Menu(Widget):
             Ellipse(
                 size_hint=(None, None),
                 size=(circlesize, circlesize),
-                angle_start=240,
-                angle_end=360
+                angle_start=242,
+                angle_end=358
                 )
 
         if touch1 in self.parent.touches: 
@@ -638,7 +638,7 @@ class LazySusan(Widget):
             self.lazy_angle = self.tmp + (new_angle-self.prev_angle)%360
 
     def sync_entrys_in_lazy_susan(self, widget, *args):
-        self.topic_label.text = 'Problem: '+ self.myproblem
+        self.topic_label.text = 'Problem: \n'+ self.myproblem
         data = Singleton(Card).cards['default'][-5:] 
         if len(data) >= 1:
             self.label1.text = data[0]
