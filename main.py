@@ -1431,10 +1431,11 @@ class KJMethodApp(App, ScreenManager):
 #resolution settings
 # Config.set('graphics', 'width', '1680')
 # Config.set('graphics', 'height', '1050')
+Config.set('graphics', 'fullscreen', 'auto')
 Config.set('postproc','jitter_distance', '0.004')
 Config.set('postproc', 'jitter_ignore_devices', 'mouse, mactouch')
 Config.write()
-Window.fullscreen = 'auto'
+# Window.fullscreen = 'auto'
 
 #debug stuff 
 kwad.attach()
