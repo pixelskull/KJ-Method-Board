@@ -336,7 +336,7 @@ class Menu(Widget):
         super(Menu, self).__init__(**kwargs)
         self.app = KJMethodApp.get_running_app()
         self.bind(on_touch_down=self.save_touch_down)
-        self.show_area()
+        # self.show_area()
         # self.bind(on_touch_up=self.remove_touch_down)
         # self.bind(on_touch_move=self.remove_touch_down)
 
@@ -1145,51 +1145,53 @@ class KJSort(FloatLayout):
                             added = True
                         else: 
                             for child in self.children: 
-                                if not child.collide_point(pos_x, pos_y) and added is False:
-                                    s = Scatter(
-                                        size_hint=(None,None), 
-                                        size=(150,50), 
-                                        center=(pos_x, pos_y),
-                                        rotation=degree+90 
-                                    )
-                                    print 'added label: ' + label
-                                    self.compute_rotation(pos_x, pos_y)
-                                    inpt = Label(text=label, 
+                                if type(child) is not  Menu: 
+                                    if not child.collide_point(pos_x, pos_y) and added is False:
+                                        s = Scatter(
+                                            size_hint=(None,None), 
+                                            size=(150,50), 
+                                            center=(pos_x, pos_y),
+                                            rotation=degree+90 
+                                        )
+                                        print 'added label: ' + label
+                                        self.compute_rotation(pos_x, pos_y)
+                                        inpt = Label(text=label, 
                                                     size_hint=(None,None), 
                                                     size=(150,50), 
                                                     keyboard_mode='managed',
                                                     text_size=(150,None),
                                                     max_lines=3,
                                                     line_height=0.5)
-                                    with inpt.canvas: 
-                                        Color(1,1,1,0.2)
-                                        Rectangle(size=inpt.size)
-                                    # inpt.bind(text_size=inpt.size)
-                                    s.add_widget(inpt)
-                                    self.add_widget(s)
-                                    added = True
+                                        with inpt.canvas: 
+                                            Color(1,1,1,0.2)
+                                            Rectangle(size=inpt.size)
+                                        # inpt.bind(text_size=inpt.size)
+                                        s.add_widget(inpt)
+                                        self.add_widget(s)
+                                        added = True
                     else: 
                         added = False 
             self.labelset = True
 
     def on_touch_up(self, touch): 
         for child in self.children: 
-            print child
-            if type(child.children[0]) is Label and\
-                type(child.children[0]) is not Card_Stack:
-                for child2 in self.children: 
-                    if child2.collide_widget(child) and child is not child2: 
-                        if type(child2.children[0]) is Label: 
-                            self.create_stack(child, child2)
-            try:
-                if type(child.children[0]) is Card_Stack:
+            if type(child) is not Menu: 
+                print child
+                if type(child.children[0]) is Label and\
+                    type(child.children[0]) is not Card_Stack:
                     for child2 in self.children: 
                         if child2.collide_widget(child) and child is not child2: 
-                            if type(child2.children[0] is Label) and \
-                                type(child2.children[0]) is not Card_Stack:
-                                self.add_to_stack(child, child2)
-            except IndexError: 
-                pass
+                            if type(child2.children[0]) is Label: 
+                                self.create_stack(child, child2)
+                try:
+                    if type(child.children[0]) is Card_Stack:
+                        for child2 in self.children: 
+                            if child2.collide_widget(child) and child is not child2: 
+                                if type(child2.children[0] is Label) and \
+                                    type(child2.children[0]) is not Card_Stack:
+                                    self.add_to_stack(child, child2)
+                except IndexError: 
+                    pass
 
 
     def create_stack(self, card1, card2):
@@ -1345,8 +1347,8 @@ class KJMethodApp(App, ScreenManager):
     #     pass
 
 #resolution settings
-Config.set('graphics', 'width', '1600')
-Config.set('graphics', 'height', '1200')
+Config.set('graphics', 'width', '1200')
+Config.set('graphics', 'height', '720')
 Config.set('postproc','jitter_distance', '0.004')
 Config.set('postproc', 'jitter_ignore_devices', 'mouse, mactouch')
 Config.write()
