@@ -1324,6 +1324,76 @@ class KJSort(FloatLayout):
         self.bind(on_touch_down=self.save_touch_down)
         self.bind(on_touch_up=self.remove_touch_down)
         # self.show_area()
+
+
+class KJEndScreen(Screen):
+    pass
+
+class KJEndApp(App, ScreenManager):
+    sm = ObjectProperty(ScreenManager(transition=SlideTransition()))
+
+    # default build method
+    def build(self):
+        self.sm.add_widget(KJEndScreen(name='end'))
+        return self.sm
+
+class End(Widget):
+
+    app = None
+
+    def __init__(self, **kwargs):
+        super(End, self).__init__(**kwargs)
+        self.app = KJEndApp.get_running_app()
+        Clock.schedule_once(self.gui, 0)
+
+    def gui(self, arguments):
+        f = FloatLayout()
+
+        blayout = BoxLayout(
+            size_hint=(None,None),
+            orientation='vertical',
+            size=(300,150))
+
+        with blayout.canvas.before:
+            Color(1, 1, 1, .5)
+            Rectangle(
+                size_hint=(None,None),
+                size= blayout.size
+            )
+
+
+        scatter = Scatter(
+                        size_hint=(None,None),
+                        size=blayout.size,
+                        center=self.parent.center,
+                        do_scale=False,
+                        do_translation=False,
+                        pos=((Window.width/2)-(blayout.size[0]/2), (Window.height/2)-(blayout.size[1]/2))
+                    )
+
+
+        l = Label(text='[color=000000]Wollen Sie das Arbeitsergebnis \nexportieren?[/color]',
+                  size=blayout.size,
+                  markup=True)
+        layout2 = BoxLayout(
+            orientation='horizontal',
+            size_hint=(None, None),
+            size=(300, 30))
+
+        btnJa = Button(text='Ja', size=blayout.size)
+
+        btnNein = Button(text='Nein', size=blayout.size)
+
+        blayout.add_widget(l)
+        blayout.add_widget(layout2)
+        layout2.add_widget(btnJa)
+        layout2.add_widget(btnNein)
+
+        scatter.add_widget(blayout)
+
+        f.add_widget(scatter)
+
+        self.parent.add_widget(f)
         
 
 
@@ -1347,7 +1417,8 @@ class KJMethodApp(App, ScreenManager):
         #self.sm.add_widget(KJMethodScreen(name='method'))
         #self.sm.add_widget(KJSortScreen(name='sort'))
         #self.sm.add_widget(KJProblemScreen(name='problem'))
-        self.sm.add_widget(KJStartScreen(name='start'))
+        #self.sm.add_widget(KJStartScreen(name='start'))
+        #self.sm.add_widget(KJEndScreen(name='end'))
         return self.sm
 
     # def build_config(self, config): 
