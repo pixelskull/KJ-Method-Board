@@ -54,8 +54,13 @@ class Menu(Widget):
             for t in self.parent.touches:
                 gesture = GestureStroke()
                 if t is not touch:
-                    if gesture.points_distance(t, touch) <= 160: 
-                        self.open_menu(touch, t)
+                    if type(self.parent) is KJMethod: 
+                        if gesture.points_distance(t, touch) <= 160: 
+                            print self.parent
+                            self.open_menu(touch, t)
+                    else: 
+                        if gesture.points_distance(t, touch) <= 160:
+                            self.open_simple_menu(touch, t)
 
 
     # delete touch when finger is lifted 
@@ -97,8 +102,6 @@ class Menu(Widget):
         scatter = Scatter(size=layout.size, center=touch2.pos, do_scale=False, do_translation=False)
         self.compute_degree(scatter.center_x, scatter.center_y)
         scatter.rotation = self.degree
-
-        # self.bind(on_degree=partial(self.update_menu_rotation, scatter))
 
         button1 = Button(text='close',
                         pos_hint={'x':0.25,'y':0.0},
@@ -150,6 +153,62 @@ class Menu(Widget):
                 size=(circlesize, circlesize),
                 angle_start=242,
                 angle_end=358
+                )
+
+        if touch1 in self.parent.touches: 
+            self.parent.touches.remove(touch1)
+        if touch2 in self.parent.touches: 
+            self.parent.touches.remove(touch2)
+
+        layout.add_widget(button1)
+        scatter.add_widget(layout)
+
+        scatter.bind(on_touch_move=self.update_menu_rotation)
+        scatter.bind(on_touch_up=self.enable_buttons)
+
+    def open_simple_menu(self, touch1, touch2, *args):
+        circlesize = 120
+        buttonsize = 50
+
+        layout = FloatLayout(size_hint=(None,None), size=(circlesize,circlesize))
+
+        scatter = Scatter(size=layout.size, center=touch2.pos, do_scale=False, do_translation=False)
+        self.compute_degree(scatter.center_x, scatter.center_y)
+        scatter.rotation = self.degree
+
+        button1 = Button(text='close',
+                        pos_hint={'x':0.05,'y':0.27},
+                        size_hint=(None, None),
+                        size=(buttonsize, buttonsize),
+                        background_color=(1, 1, 1, 0),
+                        on_release=partial(self.close_menu, scatter))
+
+        button2 = Button(text='done',
+                        pos_hint={'x':0.55, 'y':0.27},
+                        size_hint=(None,None),
+                        size=(buttonsize, buttonsize),
+                        background_color=(1,1,1,0),
+                        on_release=partial(self.open_popup, scatter))
+        layout.add_widget(button2)
+
+        self.add_widget(scatter)
+
+        with button1.canvas.before:
+            Color(1,1,.5,0.2)
+            Ellipse(
+                size_hint=(None, None),
+                size=(circlesize, circlesize),
+                angle_start=0,
+                angle_end=180
+                )
+
+        with button2.canvas.before:
+            Color(1,1,1,0.2)
+            Ellipse(
+                size_hint=(None, None),
+                size=(circlesize, circlesize),
+                angle_start=180,
+                angle_end=360
                 )
 
         if touch1 in self.parent.touches: 
@@ -240,11 +299,29 @@ class Menu(Widget):
 
     # method for changeing view 
     def change_view(self, widget, *args):
+        print "Menu_change_view"
         if widget.children[0].children[0].disabled is False:
-            self.app.sm.switch_to(KJSortScreen(name='sort'))
+            if type(self.parent) is KJMethod:
+                print "KJMethod"
+                self.app.sm.switch_to(KJSortScreen(name='sort'))
+            elif type(self.parent) is Help: 
+                print "Help"
+                self.app.sm.switch_to(KJProblemScreen(name='problem'))
+            elif type(self.parent) is Problem: 
+                print "Problem"
+                if self.parent.label_right.text == "": 
+                    LazySusan.myproblem = self.parent.label_right.text
+                else: 
+                    LazySusan.myproblem = ""
+                self.app.sm.switch_to(KJMethodScreen(name='method'))
+            else: 
+                print "KJSort"
         else: 
             for button in widget.children[0].children: 
                 button.disabled = False
+    
+        print self.parent
+            
 
     def new_label(self, widget, *args): 
         if widget.children[0].children[0].disabled is False: 
@@ -259,7 +336,7 @@ class Menu(Widget):
         super(Menu, self).__init__(**kwargs)
         self.app = KJMethodApp.get_running_app()
         self.bind(on_touch_down=self.save_touch_down)
-        # self.show_area()
+        self.show_area()
         # self.bind(on_touch_up=self.remove_touch_down)
         # self.bind(on_touch_move=self.remove_touch_down)
 
@@ -363,11 +440,25 @@ class Problem(Widget):
     _instance = None
     app = None
     label_right = ObjectProperty(Label)
+    touches = []
+
+    def save_touch_down(self, instance, touch):
+        self.touches.append(touch)
+        print 'added', touch
+
+    # delete touch when finger is lifted 
+    def remove_touch_down(self, instance, touch):
+        print 'remove', touch
+        if touch in self.touches:
+            self.touches.remove(touch)
+            # print self.touches
 
     def __init__(self, **kwargs):
         super(Problem, self).__init__(**kwargs)
         self.app = KJProblemApp.get_running_app()
         Clock.schedule_once(self.gui, 0)
+        self.bind(on_touch_down=self.save_touch_down)
+        self.bind(on_touch_up=self.remove_touch_down)
 
     def gui(self, arguments):
         f = FloatLayout()
@@ -529,6 +620,20 @@ class KJMethodHelpScreen(Screen):
 
 class Help(Widget):
     app=None
+
+    touches = []
+
+    def save_touch_down(self, instance, touch):
+        self.touches.append(touch)
+        print 'added', touch
+
+    # delete touch when finger is lifted 
+    def remove_touch_down(self, instance, touch):
+        print 'remove', touch
+        if touch in self.touches:
+            self.touches.remove(touch)
+            # print self.touches
+
     def gui(self, arguments):
         f = FloatLayout()
 
@@ -593,9 +698,12 @@ class Help(Widget):
         super(Help, self).__init__(**kwargs)
         self.app = KJMethodHelpScreenApp.get_running_app()
         Clock.schedule_once(self.gui, 0)
+        self.bind(on_touch_down=self.save_touch_down)
+        self.bind(on_touch_up=self.remove_touch_down)
 
 
-    def change_view(self, widget, **args):
+    def change_view(self, **args):
+        print "foobar"
         self.app.sm.switch_to(KJProblemScreen(name='problem'))
 
 
@@ -985,6 +1093,19 @@ class KJSort(FloatLayout):
     _instance = None
     card_stack_counter = NumericProperty(0)
 
+    touches = []
+
+    def save_touch_down(self, instance, touch):
+        self.touches.append(touch)
+        print 'added', touch
+
+    # delete touch when finger is lifted 
+    def remove_touch_down(self, instance, touch):
+        print 'remove', touch
+        if touch in self.touches:
+            self.touches.remove(touch)
+            # print self.touches
+
     # method for adding all cards to second screen  (at the moment only one label ist added)
     def add_labels(self, widget, **args): 
         if not self.labelset:
@@ -1191,6 +1312,8 @@ class KJSort(FloatLayout):
         super(KJSort, self).__init__(**kwargs)
         update = self.add_labels
         Clock.schedule_interval(update, 0.5)
+        self.bind(on_touch_down=self.save_touch_down)
+        self.bind(on_touch_up=self.remove_touch_down)
         # self.show_area()
         
 
