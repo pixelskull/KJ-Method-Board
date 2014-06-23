@@ -1108,9 +1108,11 @@ class KJSort(FloatLayout):
 
     # method for adding all cards to second screen  (at the moment only one label ist added)
     def add_labels(self, widget, **args): 
+        print "adding label"
         if not self.labelset:
             postions = []
             for label in Singleton(Card).cards['default']:
+                print "for cards"
                 added = False
                 while not added:
                     pos_y=randint(100, self.top-100)
@@ -1120,7 +1122,7 @@ class KJSort(FloatLayout):
                         pos_x <= self.right-100 and \
                         pos_y >= self.y+100 and \
                         pos_y <= self.top-100:
-                        if len(self.children) == 0: 
+                        if len(self.children) == 1: 
                             s = Scatter(
                                     size_hint=(None,None), 
                                     size=(150,50), 
@@ -1142,33 +1144,36 @@ class KJSort(FloatLayout):
                             # inpt.bind(text_size=inpt.size)
                             s.add_widget(inpt)
                             self.add_widget(s)
+                            print "first label added"
                             added = True
                         else: 
                             for child in self.children: 
-                                if type(child) is not  Menu: 
-                                    if not child.collide_point(pos_x, pos_y) and added is False:
-                                        s = Scatter(
-                                            size_hint=(None,None), 
-                                            size=(150,50), 
-                                            center=(pos_x, pos_y),
-                                            rotation=degree+90 
-                                        )
-                                        print 'added label: ' + label
-                                        self.compute_rotation(pos_x, pos_y)
-                                        inpt = Label(text=label, 
-                                                    size_hint=(None,None), 
-                                                    size=(150,50), 
-                                                    keyboard_mode='managed',
-                                                    text_size=(150,None),
-                                                    max_lines=3,
-                                                    line_height=0.5)
-                                        with inpt.canvas: 
-                                            Color(1,1,1,0.2)
-                                            Rectangle(size=inpt.size)
-                                        # inpt.bind(text_size=inpt.size)
-                                        s.add_widget(inpt)
-                                        self.add_widget(s)
-                                        added = True
+                                
+                                if not child.collide_point(pos_x, pos_y) and added is False and\
+                                    type(child) is not Menu:
+                                    print child
+                                    s = Scatter(
+                                        size_hint=(None,None), 
+                                        size=(150,50), 
+                                        center=(pos_x, pos_y),
+                                        rotation=degree+90 
+                                    )
+                                    print 'added label: ' + label
+                                    self.compute_rotation(pos_x, pos_y)
+                                    inpt = Label(text=label, 
+                                                size_hint=(None,None), 
+                                                size=(150,50), 
+                                                keyboard_mode='managed',
+                                                text_size=(150,None),
+                                                max_lines=3,
+                                                line_height=0.5)
+                                    with inpt.canvas: 
+                                        Color(1,1,1,0.2)
+                                        Rectangle(size=inpt.size)
+                                    # inpt.bind(text_size=inpt.size)
+                                    s.add_widget(inpt)
+                                    self.add_widget(s)
+                                    added = True
                     else: 
                         added = False 
             self.labelset = True
