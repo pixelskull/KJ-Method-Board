@@ -264,6 +264,89 @@ class Menu(Widget):
         # self.bind(on_touch_move=self.remove_touch_down)
 
 
+
+class KJStartScreen(Screen):
+    pass
+
+class KJStartApp(App, ScreenManager):
+    sm = ObjectProperty(ScreenManager(transition=SlideTransition()))
+
+    # default build method
+    def build(self):
+        self.sm.add_widget(KJStartScreen(name='start'))
+        return self.sm
+
+class Start(Widget):
+
+    app = None
+
+    def __init__(self, **kwargs):
+        super(Start, self).__init__(**kwargs)
+        self.app = KJStartApp.get_running_app()
+        Clock.schedule_once(self.gui, 0)
+
+    def gui(self, arguments):
+        boxlayout_start = BoxLayout(
+            orientation='vertical',
+            size_hint=(None, None),
+            size=(300, 300),
+            pos=(Window.center[0]-150,Window.center[1]-150)
+        )
+
+        s = Scatter(
+            size_hint=(None, None),
+            pos=self.pos,
+            do_translation= False,
+            do_rotation= False,
+            do_scale= False
+        )
+
+        with s.canvas:
+            Rectangle(
+                size=boxlayout_start.size,
+                source='logo.png'
+            )
+
+        boxlayout_start.add_widget(s)
+
+        boxlayout_button = BoxLayout(
+            orientation='horizontal',
+            size_hint=(None, None),
+            size = (boxlayout_start.size[0], 50),
+
+        )
+
+        button_start=Button(
+            text='Start',
+            font_size=20,
+            background_color=(1, 1, 1, .2),
+            on_press=self.change_view)
+
+
+
+
+        button_bedienung=Button(
+            text='Tutorial',
+            font_size=20,
+            background_color=(1, 1, 1, .2),
+            on_press=self.change_view2)
+
+        boxlayout_button.add_widget(button_start)
+        boxlayout_button.add_widget(button_bedienung)
+
+        boxlayout_start.add_widget(boxlayout_button)
+
+        self.parent.add_widget(boxlayout_start)
+
+    def change_view(self, widget, **args):
+        self.app.sm.switch_to(KJProblemScreen(name='problem'))
+
+    def change_view2(self, widget, **args):
+        self.app.sm.switch_to(KJMethodHelpScreen(name='help'))
+
+
+
+
 class KJProblemScreen(Screen):
     pass
 
@@ -272,7 +355,7 @@ class KJProblemApp(App, ScreenManager):
 
     # default build method
     def build(self):
-        self.sm.add_widget(KJMethodScreen(name='method'))
+        self.sm.add_widget(KJProblemScreen(name='problem'))
         return self.sm
 
 
@@ -286,16 +369,20 @@ class Problem(Widget):
         self.app = KJProblemApp.get_running_app()
         Clock.schedule_once(self.gui, 0)
 
-
     def gui(self, arguments):
-        #User Textinput
         f = FloatLayout()
+        with f.canvas:
+            Color(1,0,0,.5)
+            Rectangle(
+                size=f.size)
+
 
         boxlayout_input = BoxLayout(
             orientation='vertical',
             size_hint=(None, None),
             size=(600, 100)
         )
+
 
         my_problem = TextInput(
             size=(600, 50),
@@ -315,25 +402,24 @@ class Problem(Widget):
         button_weiter=Button(
             text='weiter',
             font_size=30,
-            size=self.size)
+            background_color=(1, 1, 1, .2))
 
 
 
-        button_weitertut=Button(
-            text='weiter, mit Tutorial',
-            font_size=30,
-            size=self.size)
+        #button_weitertut=Button(
+            #text='weiter, mit Tutorial',
+            #font_size=30)
 
 
 
         boxlayout_input_button.add_widget(button_weiter)
-        boxlayout_input_button.add_widget(button_weitertut)
+        #boxlayout_input_button.add_widget(button_weitertut)
 
         boxlayout_input.add_widget(boxlayout_input_button)
 
         scatter_textinput = Scatter(
             size_hint=(None, None),
-            size=(my_problem.size[0], my_problem.size[1]+button_weiter.size[1]),
+            size=(my_problem.size[0], button_weiter.size[1]),
             pos= (Window.center[0]-(my_problem.size[0]/2), Window.center[1]-(my_problem.size[1]/2)),
             do_rotation=True,
             do_translation=True)
@@ -342,13 +428,11 @@ class Problem(Widget):
         scatter_textinput.add_widget(boxlayout_input)
         f.add_widget(scatter_textinput)
 
-        #labels on the sides
-
         label_top=Label(
             text=my_problem.text,
-            font_size=30,
-            size=self.size
+            font_size=30
         )
+
 
         my_problem.bind(text=label_top.setter('text'))
 
@@ -365,8 +449,7 @@ class Problem(Widget):
 
         label_bottom=Label(
             text=my_problem.text,
-            font_size=30,
-            size=self.size
+            font_size=30
         )
 
         my_problem.bind(text=label_bottom.setter('text'))
@@ -383,8 +466,7 @@ class Problem(Widget):
 
         label_left=Label(
             text=my_problem.text,
-            font_size=30,
-            size=self.size
+            font_size=30
         )
 
         my_problem.bind(text=label_left.setter('text'))
@@ -394,7 +476,7 @@ class Problem(Widget):
             size=label_left.size,
             do_rotation=False,
             do_translation=True,
-            pos=(0, Window.center[1]-(self.size[0]/4)),
+            pos=(0, Window.center[1]-(label_left.size[0]/4)),
             rotation=630.0
         )
 
@@ -402,8 +484,7 @@ class Problem(Widget):
 
         label_right=Label(
             text=my_problem.text,
-            font_size=30,
-            size=self.size
+            font_size=30
         )
 
         my_problem.bind(text=label_right.setter('text'))
@@ -427,18 +508,18 @@ class Problem(Widget):
         f.add_widget(scatter_labelright)
 
         button_weiter.bind(on_press=partial(self.change_view, label_right))
-        button_weitertut.bind(on_press=partial(self.change_view2, label_right))
-
+        #button_weitertut.bind(on_press=partial(self.change_view2, label_right))
 
         self.parent.add_widget(f)
+
 
     def change_view(self, widget, text, **args):
         LazySusan.myproblem=widget.text
         self.app.sm.switch_to(KJMethodScreen(name='method'))
 
-    def change_view2(self, widget, text, **args):
-        LazySusan.myproblem=widget.text
-        self.app.sm.switch_to(KJMethodHelpScreen(name='help'))
+    #def change_view2(self, widget, text, **args):
+        #LazySusan.myproblem=widget.text
+        #self.app.sm.switch_to(KJMethodHelpScreen(name='help'))
 
 
 
@@ -451,133 +532,58 @@ class Help(Widget):
     def gui(self, arguments):
         f = FloatLayout()
 
-        label_center = Label(
-            text='zu Speichernde elemenet hier hin ziehn',
-            size=(400, 400))
 
-        with label_center.canvas:
-            Color(1, 1, 1, .5)
-            Ellipse(
-                size=label_center.size,
-                center=self.center)
-
-        center_scatter=Scatter(
+        s1 = Scatter(
             size_hint=(None, None),
-            size=label_center.size,
-            pos=(Window.center[0]-(label_center.size[0]/2), Window.center[1]-(label_center.size[1]/2)),
-            do_rotation=True,
-            do_translation=False,
-            do_scale=False
+            size=(400, 300),
+            pos=(20, Window.center[1]-150)
         )
 
-        center_scatter.add_widget(label_center)
-
-
-        label_top = Label(
-            text='Zu löschende Objekte hierher ziehen',
-            font_size=20,
-            size=(Window.width, 20)
-        )
-
-        with label_top.canvas.before:
-            Color(.5,0,0,1)
+        with s1.canvas:
             Rectangle(
-                size=label_top.size
+                size=s1.size,
+                source='s1.png'
             )
 
-        scatter_labeltop=Scatter(
-            size_hint=(None, None),
-            size=label_top.size,
-            pos=(Window.center[0]+(label_top.size[0]/2-100), Window.height-100),
-            do_rotation=False,
-            do_translation=False,
-            rotation=180.0)
+        f.add_widget(s1)
 
-        label_bottom = Label(
-            text=label_top.text,
-            font_size=label_top.font_size,
-            size=(Window.width, 20)
+
+        s2 = Scatter(
+            size_hint=(None, None),
+            size=(400, 300),
+            pos=(Window.center[0]-200,Window.center[1]-150)
         )
 
-
-        with label_bottom.canvas.before:
-            Color(.5,0,0,1)
+        with s2.canvas:
             Rectangle(
-                size=label_top.size
+                size=s2.size,
+                source='s2.png'
             )
 
-        scatter_label_bottom=Scatter(
+        f.add_widget(s2)
+
+        s3 = Scatter(
             size_hint=(None, None),
-            size=label_top.size,
-            pos=(Window.center[0]-(label_bottom.size[0]/2),0),
-            do_rotation=False,
-            do_translation=False,
-            rotation=0.0)
-
-
-        label_left=Label(
-            text=label_top.text,
-            font_size=label_top.font_size,
-            size=(Window.height, 20)
+            size=(400, 300),
+            pos=(Window.width-420, Window.center[1]-150)
         )
 
-        with label_left.canvas.before:
-            Color(.5,0,0,1)
+        with s3.canvas:
             Rectangle(
-                size=label_left.size
+                size=s3.size,
+                source='s3.png'
             )
 
-        scatter_labelleft=Scatter(
-            size_hint=(None,None),
-            size=label_left.size,
-            do_rotation=False,
-            do_translation=False,
-            pos=(0, Window.center[1]+(label_left.size[0]/2)-100),
-            rotation=630.0
-        )
+        f.add_widget(s3)
 
-
-
-        label_right=Label(
-            text=label_top.text,
-            font_size=label_top.font_size,
-            size=(Window.height, 20)
-        )
-
-        with label_right.canvas.before:
-            Color(.5,0,0,1)
-            Rectangle(
-                size=label_right.size
-            )
-
-        scatter_labelright=Scatter(
-            size_hint=(None,None),
-            size=label_right.size,
-            do_rotation=False,
-            do_translation=False,
-            pos=(Window.width-100, 0),
-            rotation=90.0
-        )
-
-        btn_done = Button(
-            text='weiter',
-            pos=(Window.width-100, 30),
-            size_hint=(None, None),
-            size=(50,30),
-            on_press=self.change_view
-        )
-
-        scatter_labelleft.add_widget(label_left)
-        scatter_labelright.add_widget(label_right)
-        scatter_labeltop.add_widget(label_top)
-        scatter_label_bottom.add_widget(label_bottom)
-
-        f.add_widget(center_scatter)
-        f.add_widget(scatter_labeltop)
-        f.add_widget(scatter_label_bottom)
-        f.add_widget(scatter_labelleft)
-        f.add_widget(scatter_labelright)
-        f.add_widget(btn_done)
+        btn = Button(text='weiter',
+                     font_size=25,
+                     size_hint=(None, None),
+                     size=(100, 30),
+                     pos = (Window.width-125, 50),
+                     background_color=(1,1,1,.2),
+                     on_press=self.change_view)
+        f.add_widget(btn)
 
         self.parent.add_widget(f)
 
@@ -585,12 +591,12 @@ class Help(Widget):
 
     def __init__(self, **kwargs):
         super(Help, self).__init__(**kwargs)
-        self.app = KJProblemApp.get_running_app()
+        self.app = KJMethodHelpScreenApp.get_running_app()
         Clock.schedule_once(self.gui, 0)
 
 
-    def change_view(self, widget):
-        self.app.sm.switch_to(KJMethodScreen(name='method'))
+    def change_view(self, widget, **args):
+        self.app.sm.switch_to(KJProblemScreen(name='problem'))
 
 
 class KJMethodHelpScreenApp(App, ScreenManager):
@@ -598,11 +604,8 @@ class KJMethodHelpScreenApp(App, ScreenManager):
 
     # default build method
     def build(self):
-        self.sm.add_widget(KJMethodScreen(name='method'))
+        self.sm.add_widget(KJMethodHelpScreen(name='help'))
         return self.sm
-
-
-
 
 
 # class for implementing circle widget in middel of first screen 
@@ -1210,8 +1213,9 @@ class KJMethodApp(App, ScreenManager):
     # default build method
     def build(self):
         #self.sm.add_widget(KJMethodScreen(name='method'))
-        # self.sm.add_widget(KJSortScreen(name='sort'))
-        self.sm.add_widget(KJProblemScreen(name='problem'))
+        #self.sm.add_widget(KJSortScreen(name='sort'))
+        #self.sm.add_widget(KJProblemScreen(name='problem'))
+        self.sm.add_widget(KJStartScreen(name='start'))
         return self.sm
 
     # def build_config(self, config): 
