@@ -1185,16 +1185,18 @@ class KJSort(FloatLayout):
                 if type(child.children[0]) is Label and\
                     type(child.children[0]) is not Card_Stack:
                     for child2 in self.children: 
-                        if child2.collide_widget(child) and child is not child2: 
-                            if type(child2.children[0]) is Label: 
-                                self.create_stack(child, child2)
+                        if type(child2) is not Menu: 
+                            if child2.collide_widget(child) and child is not child2: 
+                                if type(child2.children[0]) is Label: 
+                                    self.create_stack(child, child2)
                 try:
                     if type(child.children[0]) is Card_Stack:
                         for child2 in self.children: 
-                            if child2.collide_widget(child) and child is not child2: 
-                                if type(child2.children[0] is Label) and \
-                                    type(child2.children[0]) is not Card_Stack:
-                                    self.add_to_stack(child, child2)
+                            if type(child2) is not Menu: 
+                                if child2.collide_widget(child) and child is not child2: 
+                                    if type(child2.children[0] is Label) and \
+                                        type(child2.children[0]) is not Card_Stack:
+                                        self.add_to_stack(child, child2)
                 except IndexError: 
                     pass
 
@@ -1352,12 +1354,12 @@ class KJMethodApp(App, ScreenManager):
     #     pass
 
 #resolution settings
-Config.set('graphics', 'width', '1200')
-Config.set('graphics', 'height', '720')
+Config.set('graphics', 'width', '1280')
+Config.set('graphics', 'height', '1024')
 Config.set('postproc','jitter_distance', '0.004')
 Config.set('postproc', 'jitter_ignore_devices', 'mouse, mactouch')
 Config.write()
-# Window.fullscreen = True
+Window.fullscreen = True
 
 #debug stuff 
 kwad.attach()
