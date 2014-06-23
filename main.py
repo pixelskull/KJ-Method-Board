@@ -4,6 +4,10 @@ __version__='0.1.0'
 import kivy
 kivy.require('1.8.0')
 
+from pygame.base import *
+from pygame.constants import *
+from pygame.version import *
+
 from kivy.app import App 
 from kivy.config import Config
 from kivy.core.window import Window
@@ -1425,12 +1429,12 @@ class KJMethodApp(App, ScreenManager):
     #     pass
 
 #resolution settings
-Config.set('graphics', 'width', '1280')
-Config.set('graphics', 'height', '1024')
+# Config.set('graphics', 'width', '1680')
+# Config.set('graphics', 'height', '1050')
 Config.set('postproc','jitter_distance', '0.004')
 Config.set('postproc', 'jitter_ignore_devices', 'mouse, mactouch')
 Config.write()
-Window.fullscreen = True
+Window.fullscreen = 'auto'
 
 #debug stuff 
 kwad.attach()
