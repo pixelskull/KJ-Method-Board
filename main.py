@@ -198,7 +198,7 @@ class Menu(Widget):
         self.add_widget(scatter)
 
         with button1.canvas.before:
-            Color(1,1,1,0.2)
+            Color(1, 1, 1, 0.2)
             Ellipse(
                 size_hint=(None, None),
                 size=(circlesize, circlesize),
@@ -207,7 +207,7 @@ class Menu(Widget):
                 )
 
         with button2.canvas.before:
-            Color(1,1,1,0.2)
+            Color(1, 1, 1, 0.2)
             Ellipse(
                 size_hint=(None, None),
                 size=(circlesize, circlesize),
@@ -246,13 +246,13 @@ class Menu(Widget):
         scatter = Scatter(
                         size_hint=(None,None),
                         size=blayout.size, 
-                        center=self.parent.center, 
-                        do_scale=False, 
-                        do_translation=False,
+                        center=self.parent.center,
+                        do_scale=True,
+                        do_translation=True,
                         pos=((Window.width/2)-(blayout.size[0]/2), (Window.height/2)-(blayout.size[1]/2))
                     )
 
-        l = Label(text='[color=000000]Nächstes Fenster aufrufen?[/color]', size=blayout.size, markup = True)
+        l = Label(text='[color=000000]Nächstes Fenster aufrufen?[/color]', size=blayout.size, markup=True)
 
         layout2 = BoxLayout(
             orientation='horizontal',
@@ -270,7 +270,7 @@ class Menu(Widget):
 
         scatter.add_widget(blayout)
 
-        self.add_widget(scatter)
+        self.parent.add_widget(scatter)
 
     def rmove(self, widget, *args):
         self.remove_widget(widget)
@@ -313,14 +313,13 @@ class Menu(Widget):
                 self.app.sm.switch_to(KJProblemScreen(name='problem'))
             elif type(self.parent) is Problem: 
                 print "Problem"
-                if self.parent.label_right.text == "": 
+                if self.parent.label_right.text == "":
                     LazySusan.myproblem = self.parent.label_right.text
                 else: 
                     LazySusan.myproblem = ""
                 self.app.sm.switch_to(KJMethodScreen(name='method'))
-            else: 
+            else:
                 print "KJSort"
-                print "End"
                 self.app.sm.switch_to(KJEndScreen(name='end'))
         else: 
             for button in widget.children[0].children: 
@@ -467,12 +466,6 @@ class Problem(Widget):
         self.bind(on_touch_up=self.remove_touch_down)
 
     def gui(self, arguments):
-        f = FloatLayout()
-        with f.canvas:
-            Color(1,0,0,.5)
-            Rectangle(
-                size=f.size)
-
 
         boxlayout_input = BoxLayout(
             orientation='vertical',
@@ -523,7 +516,8 @@ class Problem(Widget):
 
 
         scatter_textinput.add_widget(boxlayout_input)
-        f.add_widget(scatter_textinput)
+
+        self.add_widget(scatter_textinput)
 
         label_top=Label(
             text=my_problem.text,
@@ -599,15 +593,15 @@ class Problem(Widget):
 
         scatter_labelright.add_widget(label_right)
 
-        f.add_widget(scatter_labeltop)
-        f.add_widget(scatter_labelbottom)
-        f.add_widget(scatter_labelleft)
-        f.add_widget(scatter_labelright)
+        self.parent.add_widget(scatter_labeltop)
+        self.parent.add_widget(scatter_labelbottom)
+        self.parent.add_widget(scatter_labelleft)
+        self.parent.add_widget(scatter_labelright)
 
         button_weiter.bind(on_press=partial(self.change_view, label_right))
         #button_weitertut.bind(on_press=partial(self.change_view2, label_right))
 
-        self.parent.add_widget(f)
+        #self.parent.add_widget(f)
 
 
     def change_view(self, widget, text, **args):
@@ -625,8 +619,6 @@ class KJHelpScreen(Screen):
     pass
 
 class Help(Widget):
-
-    f = FloatLayout()
     app=None
 
     touches = []
@@ -644,6 +636,8 @@ class Help(Widget):
 
     def gui(self, arguments):
 
+
+
         s1 = Scatter(
             size_hint=(None, None),
             size=(400, 300),
@@ -656,7 +650,7 @@ class Help(Widget):
                 source='s1.png'
             )
 
-        self.f.add_widget(s1)
+        self.add_widget(s1)
 
 
         s2 = Scatter(
@@ -671,7 +665,7 @@ class Help(Widget):
                 source='s2.png'
             )
 
-        self.f.add_widget(s2)
+        self.add_widget(s2)
 
         s3 = Scatter(
             size_hint=(None, None),
@@ -685,10 +679,18 @@ class Help(Widget):
                 source='s3.png'
             )
 
-        self.f.add_widget(s3)
+        self.add_widget(s3)
 
+        btn = Button(text='weiter',
+                     font_size=25,
+                     size_hint=(None, None),
+                     size=(100, 30),
+                     pos = (Window.width-125, 50),
+                     background_color=(1,1,1,.2),
+                     on_press=self.change_view)
+        self.add_widget(btn)
 
-        self.parent.add_widget(self.f)
+        #self.parent.add_widget(f)
 
 
 
@@ -1393,74 +1395,6 @@ class End(Widget):
 
         self.parent.add_widget(f)
 
-
-
-class KJEndScreen(Screen):
-    pass
-
-class KJEndApp(App, ScreenManager):
-    sm = ObjectProperty(ScreenManager(transition=SlideTransition()))
-
-    # default build method
-    def build(self):
-        self.sm.add_widget(KJEndScreen(name='end'))
-        return self.sm
-
-class End(Widget):
-
-    app = None
-
-    def __init__(self, **kwargs):
-        super(End, self).__init__(**kwargs)
-        self.app = KJEndApp.get_running_app()
-        Clock.schedule_once(self.gui, 0)
-
-    def gui(self, arguments):
-        f = FloatLayout()
-
-        blayout = BoxLayout(
-            size_hint=(None,None),
-            orientation='vertical',
-            size=(300,150))
-
-        with blayout.canvas.before:
-            Color(1, 1, 1, .5)
-            Rectangle(
-                size_hint=(None,None),
-                size= blayout.size
-            )
-
-
-        scatter = Scatter(
-                        size_hint=(None,None),
-                        size=blayout.size,
-                        center=self.parent.center,
-                        pos=((Window.width/2)-(blayout.size[0]/2), (Window.height/2)-(blayout.size[1]/2))
-                    )
-
-
-        l = Label(text='[color=000000]Wollen Sie das Arbeitsergebnis \nexportieren?[/color]',
-                  size=blayout.size,
-                  markup=True)
-        layout2 = BoxLayout(
-            orientation='horizontal',
-            size_hint=(None, None),
-            size=(300, 30))
-
-        btnJa = Button(text='Ja', size=blayout.size)
-
-        btnNein = Button(text='Nein', size=blayout.size)
-
-        blayout.add_widget(l)
-        blayout.add_widget(layout2)
-        layout2.add_widget(btnJa)
-        layout2.add_widget(btnNein)
-
-        scatter.add_widget(blayout)
-
-        f.add_widget(scatter)
-
-        self.parent.add_widget(f)
 
 
 # Dummy Class for the first Screen (definition in .kv file)
