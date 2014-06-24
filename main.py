@@ -198,12 +198,12 @@ class Menu(Widget):
         self.add_widget(scatter)
 
         with button1.canvas.before:
-            Color(1,1,.5,0.2)
+            Color(1,1,1,0.2)
             Ellipse(
                 size_hint=(None, None),
                 size=(circlesize, circlesize),
-                angle_start=0,
-                angle_end=180
+                angle_start=2,
+                angle_end=178
                 )
 
         with button2.canvas.before:
@@ -211,8 +211,8 @@ class Menu(Widget):
             Ellipse(
                 size_hint=(None, None),
                 size=(circlesize, circlesize),
-                angle_start=180,
-                angle_end=360
+                angle_start=182,
+                angle_end=358
                 )
 
         if touch1 in self.parent.touches: 
