@@ -16,6 +16,7 @@ from kivy.graphics import *
 from kivy.uix.widget import Widget
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.image import *
 
 # from kivy.uix.relativelayout import RelativeLayout
 
@@ -98,7 +99,7 @@ class Menu(Widget):
             return calc if calc > 0 else 360+calc
 
     def open_menu(self, touch1, touch2, *args):
-        circlesize = 120
+        circlesize = 135
         buttonsize = 50
 
         layout = FloatLayout(size_hint=(None,None), size=(circlesize,circlesize))
@@ -107,28 +108,36 @@ class Menu(Widget):
         self.compute_degree(scatter.center_x, scatter.center_y)
         scatter.rotation = self.degree
 
-        button1 = Button(text='close',
-                        pos_hint={'x':0.25,'y':0.0},
+        button1 = Button(text='schliessen',
+                        pos_hint={'x':0.0,'y':0.3},
                         size_hint=(None, None),
                         size=(buttonsize, buttonsize),
                         background_color=(1, 1, 1, 0),
                         on_release=partial(self.close_menu, scatter))
 
-        button2 = Button(text='done',
-                        pos_hint={'x':0.55, 'y':0.4},
+        button2 = Button(text='weiter',
+                        pos_hint={'x':0.6, 'y':0.3},
                         size_hint=(None,None), 
                         size=(buttonsize, buttonsize), 
                         background_color=(1,1,1,0),
                         on_release=partial(self.open_popup, scatter))
         layout.add_widget(button2)
 
-        button3 = Button(text='input',
-                        pos_hint={'x':0.05,'y':0.4},
+        button3 = Button(text='text',
+                        pos_hint={'x':0.30,'y':0.65},
                         size_hint=(None, None),
                         size=(buttonsize, buttonsize),
                         background_color=(1, 1, 1, 0),
                         on_release=partial(self.new_label, scatter)) 
         layout.add_widget(button3)
+
+        button4 = Button(text='Smart-\nphone',
+                        pos_hint={'x':0.35,'y':0},
+                        size_hint=(None, None),
+                        size=(buttonsize, buttonsize),
+                        background_color=(1, 1, 1, 0),
+                        on_release=partial(self.qrcode, scatter))
+        layout.add_widget(button4)
 
         self.add_widget(scatter)
 
@@ -137,8 +146,8 @@ class Menu(Widget):
             Ellipse(
                 size_hint=(None, None),
                 size=(circlesize, circlesize), 
-                angle_start=238,
-                angle_end=122
+                angle_start=227,
+                angle_end=313
                 )
 
         with button2.canvas.before: 
@@ -146,8 +155,8 @@ class Menu(Widget):
             Ellipse(
                 size_hint=(None, None),
                 size=(circlesize, circlesize), 
-                angle_start=2,
-                angle_end=118
+                angle_start=47,
+                angle_end=133
                 )
 
         with button3.canvas.before: 
@@ -155,9 +164,19 @@ class Menu(Widget):
             Ellipse(
                 size_hint=(None, None),
                 size=(circlesize, circlesize),
-                angle_start=242,
-                angle_end=358
+                angle_start=43,
+                angle_end=-43
                 )
+
+        with button4.canvas.before:
+            Color(1, 1, 1, 0.2)
+            Ellipse(
+                size_hint=(None, None),
+                size=(circlesize, circlesize),
+                angle_start=137,
+                angle_end=223
+                )
+
 
         if touch1 in self.parent.touches: 
             self.parent.touches.remove(touch1)
@@ -170,6 +189,38 @@ class Menu(Widget):
         scatter.bind(on_touch_move=self.update_menu_rotation)
         scatter.bind(on_touch_up=self.enable_buttons)
 
+
+    def qrcode(self, widget, *args):
+        callback = partial(self.close_menu, widget)
+        Clock.schedule_once(callback, 0)
+
+        blayout = BoxLayout(
+            orientation='vertical')
+
+        scatter = Scatter(
+            size_hint=(None, None),
+            size=(blayout.size[0], blayout.size[1]+20),
+            do_scale=True,
+            do_translation=True,
+            pos=(widget.pos[0],widget.pos[1])
+        )
+
+        wimg = Image(source='qr.png')
+
+        btnok = Button(text='ok',
+                       size_hint=(None,None),
+                       size=(scatter.size[0],20),
+                       on_press=partial(self.rmove2, scatter),
+                       pos=(scatter.pos[0], scatter.pos[1]-20)
+        )
+
+        blayout.add_widget(wimg)
+        blayout.add_widget(btnok)
+
+        scatter.add_widget(blayout)
+
+        self.add_widget(scatter)
+
     def open_simple_menu(self, touch1, touch2, *args):
         circlesize = 120
         buttonsize = 50
@@ -180,14 +231,14 @@ class Menu(Widget):
         self.compute_degree(scatter.center_x, scatter.center_y)
         scatter.rotation = self.degree
 
-        button1 = Button(text='close',
+        button1 = Button(text='schliessen',
                         pos_hint={'x':0.05,'y':0.27},
                         size_hint=(None, None),
                         size=(buttonsize, buttonsize),
                         background_color=(1, 1, 1, 0),
                         on_release=partial(self.close_menu, scatter))
 
-        button2 = Button(text='done',
+        button2 = Button(text='weiter',
                         pos_hint={'x':0.55, 'y':0.27},
                         size_hint=(None,None),
                         size=(buttonsize, buttonsize),
@@ -236,7 +287,7 @@ class Menu(Widget):
             size=(300, 300))
 
         with blayout.canvas.before:
-            Color(1, 1, 1, .5)
+            Color(1, 1, 1, 1)
             Rectangle(
                 size_hint=(None,None),
                 size= blayout.size
@@ -252,16 +303,20 @@ class Menu(Widget):
                         pos=((Window.width/2)-(blayout.size[0]/2), (Window.height/2)-(blayout.size[1]/2))
                     )
 
-        l = Label(text='[color=000000]Nächstes Fenster aufrufen?[/color]', size=blayout.size, markup=True)
 
         layout2 = BoxLayout(
             orientation='horizontal',
             size_hint=(None, None),
             size=(300, 30))
 
-        btnJa = Button(text='Ja', size=blayout.size, on_press=partial(self.change_view, scatter))
-
-        btnNein = Button(text='Nein', size=blayout.size, on_press=partial(self.rmove, scatter))
+        if type(self.parent) is KJSort:
+            l = Label(text='[color=000000]Arbeitsergebnis exportieren?[/color]', size=blayout.size, markup=True)
+            btnJa = Button(text='Ja', size=blayout.size, on_press=partial(self.export_json, scatter))
+            btnNein = Button(text='Nein', size=blayout.size, on_press=partial(self.restart, scatter))
+        else:
+             l = Label(text='[color=000000]Nächstes Fenster aufrufen?[/color]', size=blayout.size, markup=True)
+             btnJa = Button(text='Ja', size=blayout.size, on_press=partial(self.change_view, scatter))
+             btnNein = Button(text='Nein', size=blayout.size, on_press=partial(self.rmove, scatter))
 
         blayout.add_widget(l)
         blayout.add_widget(layout2)
@@ -272,7 +327,64 @@ class Menu(Widget):
 
         self.parent.add_widget(scatter)
 
+    def export_json(self, widget, *args):
+        callback = partial(self.rmove, widget)
+        Clock.schedule_once(callback, 0)
+
+        filepath = os.path.join(os.path.dirname(__file__), 'Arbeitsergebnis.json')
+        with open(filepath, 'w') as outfile:
+             json.dump(Singleton(Card).cards, outfile);
+
+
+        blayout = BoxLayout(
+            size_hint=(None,None),
+            orientation='vertical',
+            size=(300, 300))
+
+        with blayout.canvas.before:
+            Color(1, 1, 1, 1)
+            Rectangle(
+                size_hint=(None,None),
+                size= blayout.size
+            )
+
+
+        scatter = Scatter(
+                        size_hint=(None,None),
+                        size=blayout.size,
+                        center=self.parent.center,
+                        do_scale=True,
+                        do_translation=True,
+                        pos=((Window.width/2)-(blayout.size[0]/2), (Window.height/2)-(blayout.size[1]/2))
+                    )
+
+        layout2 = BoxLayout(
+            orientation='horizontal',
+            size_hint=(None, None),
+            size=(300, 30))
+
+
+        l = Label(text='[color=000000]Arbeitsergebnis exportiert. \nDatei ist im Programmorderner zu finden, \n'
+                       'als Arbeitsergebnis.json[/color]',
+                  size=blayout.size,
+                  markup=True)
+        btnok = Button(text='ok', size=blayout.size, on_press=partial(self.change_view, scatter))
+
+        blayout.add_widget(l)
+        blayout.add_widget(layout2)
+        layout2.add_widget(btnok)
+
+        scatter.add_widget(blayout)
+
+        self.parent.add_widget(scatter)
+
+
+
+
     def rmove(self, widget, *args):
+        self.parent.remove_widget(widget)
+
+    def rmove2(self, widget, *args):
         self.remove_widget(widget)
 
     def update_menu_rotation(self, widget, touch, *args):
@@ -301,6 +413,9 @@ class Menu(Widget):
             for button in widget.children[0].children:
                 button.disabled = False
 
+    def restart(self, *args):
+        self.app.sm.switch_to(KJStartScreen(name='start'))
+
     # method for changeing view 
     def change_view(self, widget, *args):
         print "Menu_change_view"
@@ -320,7 +435,7 @@ class Menu(Widget):
                 self.app.sm.switch_to(KJMethodScreen(name='method'))
             else:
                 print "KJSort"
-                self.app.sm.switch_to(KJEndScreen(name='end'))
+                self.app.sm.switch_to(KJStartScreen(name='start'))
         else: 
             for button in widget.children[0].children: 
                 button.disabled = False
@@ -446,6 +561,9 @@ class Problem(Widget):
     app = None
     label_right = ObjectProperty(Label)
     touches = []
+
+    degree = NumericProperty(0)
+    tmp = None
 
     def save_touch_down(self, instance, touch):
         self.touches.append(touch)
@@ -641,7 +759,7 @@ class Help(Widget):
         s1 = Scatter(
             size_hint=(None, None),
             size=(400, 300),
-            pos=(20, Window.center[1]-150)
+            pos=(Window.center[0]-420, Window.center[1])
         )
 
         with s1.canvas:
@@ -656,7 +774,7 @@ class Help(Widget):
         s2 = Scatter(
             size_hint=(None, None),
             size=(400, 300),
-            pos=(Window.center[0]-200,Window.center[1]-150)
+            pos=(Window.center[0]+20, Window.center[1])
         )
 
         with s2.canvas:
@@ -670,7 +788,7 @@ class Help(Widget):
         s3 = Scatter(
             size_hint=(None, None),
             size=(400, 300),
-            pos=(Window.width-420, Window.center[1]-150)
+            pos=(Window.center[0]-420, Window.center[1]-320)
         )
 
         with s3.canvas:
@@ -681,14 +799,20 @@ class Help(Widget):
 
         self.add_widget(s3)
 
-        btn = Button(text='weiter',
-                     font_size=25,
-                     size_hint=(None, None),
-                     size=(100, 30),
-                     pos = (Window.width-125, 50),
-                     background_color=(1,1,1,.2),
-                     on_press=self.change_view)
-        self.add_widget(btn)
+
+        s4 = Scatter(
+            size_hint=(None, None),
+            size=(400, 300),
+            pos=(Window.center[0]+20, Window.center[1]-320)
+        )
+
+        with s4.canvas:
+            Rectangle(
+                size=s4.size,
+                source='s4.png'
+            )
+
+        self.add_widget(s4)
 
         #self.parent.add_widget(f)
 
@@ -828,22 +952,22 @@ class EditableLabel(Label):
 
     # called when text is entered 
     def on_text_validate(self, instance):
-        if self.textinput.text is not "" and self.textinput.text is not "touch me":
+        if self.textinput.text is not "" and self.textinput.text is not "klick mich":
             self.text = self.textinput.text
             # self.edit = False
         else: 
-            self.text = "touch me"
+            self.text = "klick mich"
 
     # called when label has focus (touch on label)
     def on_text_focus(self, instance, focus):
         old_categorie_name = self.text
-        if self.textinput.text == "touch me" or \
+        if self.textinput.text == "klick mich" or \
                 "KategorieTitel" in self.textinput.text or \
-                self.textinput.text == "empty":
+                self.textinput.text == "leer":
             self.textinput.text = ""
         if focus is False or self.edit is False:
             if self.textinput.text == "":
-                self.textinput.text = "empty"
+                self.textinput.text = "leer"
             else: 
                 self.text = instance.text
                 if type(self.parent) is BoxLayout:
@@ -871,7 +995,7 @@ class Card():
     # add a card to cards-list 
     def add_card(self, label): 
         if label not in self.cards['default']:
-            if label is not "" and label is not "touch me":
+            if label is not "" and label is not "klick mich":
                 self.cards['default'].append(label)
                 self.cards_changed = True
 
@@ -1140,7 +1264,7 @@ class KJMethod(FloatLayout):
         # scatter_pos = widget.pos
 
         s = Scatter(size_hint=(None,None), center=widget.center, rotation=degree+110) # , size=(100,50)
-        inpt = EditableLabel(text='touch me', size_hint=(None, None), size=(100, 50), keyboard_mode='managed')
+        inpt = EditableLabel(text='klick mich', size_hint=(None, None), size=(100, 50), keyboard_mode='managed')
         # inpt.bind(on_touch_up=show_keyboard())
         # KeyboardListener().setCallback(self.key_up)
         s.add_widget(inpt)
@@ -1169,9 +1293,9 @@ class KJMethod(FloatLayout):
                         if len(child2.children) >= 1:
                             print child2
                             if type(child2.children[0]) is EditableLabel and \
-                                child2.children[0].text != "touch me" and \
+                                child2.children[0].text != "klick mich" and \
                                 child2.children[0].text != "KategorieTitel" and \
-                                child2.children[0].text != "empty":
+                                child2.children[0].text != "leer":
                                 try: 
                                     print "collide LazySusan", child, child2.children
                                     Singleton(Card).add_card(child2.children[0].text)
@@ -1310,7 +1434,8 @@ class KJSort(FloatLayout):
                     for child2 in self.children: 
                         if type(child2) is not Menu: 
                             if child2.collide_widget(child) and child is not child2: 
-                                if type(child2.children[0]) is Card_Label: 
+                                if type(child2.children[0]) is Card_Label and \
+                                        type(child2.children[0]) is not BoxLayout:
                                     if child2.children[0].addable and child.children[0].addable:
                                         print child2.children[0].addable
                                         self.create_stack(child, child2)
@@ -1320,7 +1445,8 @@ class KJSort(FloatLayout):
                             if type(child2) is not Menu: 
                                 if child2.collide_widget(child) and child is not child2: 
                                     if type(child2.children[0] is Card_Label) and \
-                                        type(child2.children[0]) is not Card_Stack:
+                                        type(child2.children[0]) is not Card_Stack and \
+                                            type(child2.children[0]) is not BoxLayout:
                                         if child2.children[0].addable: 
                                             print child2.children[0].addable
                                             self.add_to_stack(child, child2)
