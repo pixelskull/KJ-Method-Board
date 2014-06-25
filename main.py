@@ -41,10 +41,13 @@ import math
 # import os
 import os.path
 import json
+import urllib2
+import time
 from random import randint
 
 import kwad
 
+from thread import start_new_thread
 
 # implementation for Menu widget
 class Menu(Widget): 
@@ -1063,10 +1066,21 @@ class Card():
         except Exception, e:
             pass
 
+    def get_update_from_server(self, server): 
+        while True:
+            print "sync from Server"
+            server_data = json.load(urllib2.urlopen(server))
+            for entry in server_data['default']:
+                self.add_card(entry)
+            time.sleep(0.1)
+            
+
     # init method 
     def __init__(self, **kwargs): 
         update = self.sync_cards_withFiles
         Clock.schedule_interval(update, 1.0)
+        start_new_thread(self.get_update_from_server, ("http://perasmus.serpens.uberspace.de/dev/pascal/data.json",))
+
 
 
 # method vor calling a single instance of a Class 
