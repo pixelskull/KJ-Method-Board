@@ -1039,9 +1039,9 @@ class Card():
     def sync_cards_withFiles(self, widget, *args):
         # with open('lazy.json', 'w') as outfile: 
         #     json.dump(self.cards['default'][-5:], outfile);
+        filepath = os.path.join(os.path.dirname(__file__), 'kj-method.json')
+        main_json = open(filepath, 'r+')
         if self.cards_changed is True:
-            filepath = os.path.join(os.path.dirname(__file__), 'kj-method.json')
-            main_json = open(filepath, 'r+')
             # main_json = open('./kj-method.json', 'r+')
             main_data = None
             try:
@@ -1052,9 +1052,9 @@ class Card():
             with open(filepath, 'w') as outfile: 
                 json.dump(self.cards, outfile)
             self.cards_changed = False 
-        filepath = os.path.join(os.path.dirname(__file__), 'kj-method.json')
+        # filepath = os.path.join(os.path.dirname(__file__), 'kj-method.json')
         # main_json = open('./kj-method.json', 'r+')
-        main_json = open(filepath, 'r+')
+        # main_json = open(filepath, 'r+')
         try:
             main_data = json.load(main_json)
             for item in main_data['default']:
