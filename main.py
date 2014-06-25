@@ -109,7 +109,8 @@ class Menu(Widget):
         scatter.rotation = self.degree
 
         button1 = Button(text='schliessen',
-                        pos_hint={'x':0.0,'y':0.3},
+                         font_size=12,
+                        pos_hint={'x':0.05,'y':0.3},
                         size_hint=(None, None),
                         size=(buttonsize, buttonsize),
                         background_color=(1, 1, 1, 0),
@@ -123,7 +124,7 @@ class Menu(Widget):
                         on_release=partial(self.open_popup, scatter))
         layout.add_widget(button2)
 
-        button3 = Button(text='text',
+        button3 = Button(text='Text',
                         pos_hint={'x':0.30,'y':0.65},
                         size_hint=(None, None),
                         size=(buttonsize, buttonsize),
@@ -232,6 +233,7 @@ class Menu(Widget):
         scatter.rotation = self.degree
 
         button1 = Button(text='schliessen',
+                         font_size=12,
                         pos_hint={'x':0.05,'y':0.27},
                         size_hint=(None, None),
                         size=(buttonsize, buttonsize),
