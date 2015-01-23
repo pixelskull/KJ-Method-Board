@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
-__version__='0.1.0'
+__version__ = '0.1.0'
 
 import kivy
 kivy.require('1.8.0')
-# show_area Helper Method
+
 import kwad
-# python default Methods
 import math
 import os.path
 import json
@@ -14,12 +13,10 @@ import time
 from functools import partial
 from random import randint
 from thread import start_new_thread
-# kivy Methods
-from kivy.app import App 
+from kivy.app import App
 from kivy.config import Config
 from kivy.core.window import Window
 from kivy.base import ExceptionHandler
-from kivy.base import ExceptionManager
 from kivy.clock import Clock
 from kivy.graphics import *
 from kivy.uix.widget import Widget
@@ -32,135 +29,135 @@ from kivy.uix.vkeyboard import VKeyboard
 from kivy.uix.textinput import TextInput
 from kivy.uix.label import Label
 from kivy.uix.screenmanager import Screen, ScreenManager, SlideTransition
-from kivy.properties import ObjectProperty, NumericProperty, ListProperty, BooleanProperty
+from kivy.properties import ObjectProperty, NumericProperty, ListProperty
+from kivy.properties import BooleanProperty
 from kivy.gesture import GestureStroke
 from kivy.logger import Logger
 
+
 # implementation for Menu widget
-class Menu(Widget): 
+class Menu(Widget):
     touches = []
-    app = None;
+    app = None
     degree = NumericProperty(0)
     tmp = None
 
-    # save each touch in list for detecting two-finger-touch 
+    # save each touch in list for detecting two-finger-touch
     def save_touch_down(self, instance, touch):
         if len(self.parent.touches) >= 1:
             for t in self.parent.touches:
                 gesture = GestureStroke()
                 if t is not touch:
-                    if type(self.parent) is KJMethod: 
-                        if gesture.points_distance(t, touch) <= 160: 
+                    if type(self.parent) is KJMethod:
+                        if gesture.points_distance(t, touch) <= 160:
                             self.open_menu(touch, t)
-                    else: 
+                    else:
                         if gesture.points_distance(t, touch) <= 160:
                             self.open_simple_menu(touch, t)
 
-    # delete touch when finger is lifted 
+    # delete touch when finger is lifted
     def remove_touch_down(self, instance, touch):
         if touch in self.touches:
             if touch.ud['menu_event'] is not None:
                 Clock.unschedule(touch.ud['menu_event'])
 
-    # computes the rotation degrees to center from middle of window 
+    # computes the rotation degrees to center from middle of window
     def compute_degree(self, pos_x, pos_y):
         x = (pos_x - Window.center[0])
         y = (pos_y - Window.center[1])
         calc = math.degrees(math.atan2(y, x))
-        self.degree =  calc if calc > 0 else 360+calc
+        self.degree = calc if calc > 0 else 360 + calc
         self.degree += 90
 
-    # computes rotation based on a widget and returns that value 
+    # computes rotation based on a widget and returns that value
     def compute_rotation(self, widget, touch):
-        if widget.collide_point(touch.x, touch.y): 
+        if widget.collide_point(touch.x, touch.y):
             x = (touch.x - widget.center_x)
             y = (touch.y - widget.center_y)
-            calc = math.degrees(math.atan2(y,x))
+            calc = math.degrees(math.atan2(y, x))
             new_angle = calc if calc > 0 else 360+calc
-            return touch.ud['tmp'] + (new_angle-touch.ud['prev_angle'])%360
+            return touch.ud['tmp'] + (new_angle-touch.ud['prev_angle']) % 360
 
-    # helper method to compute the angle of a widget 
+    # helper method to compute the angle of a widget
     def compute_prev_angle(self, widget, touch):
-        if widget.collide_point(touch.x, touch.y): 
+        if widget.collide_point(touch.x, touch.y):
             x = touch.x - widget.center_x
             y = touch.y - widget.center_y
-            calc = math.degrees(math.atan2(y,x))
-            if not touch.ud.has_key('tmp'):
+            calc = math.degrees(math.atan2(y, x))
+            # if not touch.ud.has_key('tmp'):
+            if 'tmp' not in touch.ud:
                 touch.ud['tmp'] = widget.rotation
             return calc if calc > 0 else 360+calc
 
-    # opens a full menu used in the KJ-Method Screen 
+    # opens a full menu used in the KJ-Method Screen
     def open_menu(self, touch1, touch2, *args):
         circlesize = 135
         buttonsize = 50
-        layout = FloatLayout(size_hint=(None,None), size=(circlesize,circlesize))
-        scatter = Scatter(size=layout.size, center=touch2.pos, do_scale=False, do_translation=False)
-        self.compute_degree(scatter.center_x, scatter.center_y)
+        layout = FloatLayout(size_hint=(None, None),
+                             size=(circlesize, circlesize))
+        scatter = Scatter(size=layout.size,
+                          center=touch2.pos,
+                          do_scale=False,
+                          do_translation=False)
+        self.compute_degree(scatter.center_x,
+                            scatter.center_y)
         scatter.rotation = self.degree
         button1 = Button(text='schliessen',
                          font_size=12,
-                        pos_hint={'x':0.05,'y':0.3},
-                        size_hint=(None, None),
-                        size=(buttonsize, buttonsize),
-                        background_color=(1, 1, 1, 0),
-                        on_release=partial(self.close_menu, scatter))
+                         pos_hint={'x': 0.05, 'y': 0.3},
+                         size_hint=(None, None),
+                         size=(buttonsize, buttonsize),
+                         background_color=(1, 1, 1, 0),
+                         on_release=partial(self.close_menu, scatter))
         layout.add_widget(button1)
         button2 = Button(text='weiter',
-                        pos_hint={'x':0.6, 'y':0.3},
-                        size_hint=(None,None), 
-                        size=(buttonsize, buttonsize), 
-                        background_color=(1,1,1,0),
-                        on_release=partial(self.open_popup, scatter))
+                         pos_hint={'x': 0.6, 'y': 0.3},
+                         size_hint=(None, None),
+                         size=(buttonsize, buttonsize),
+                         background_color=(1, 1, 1, 0),
+                         on_release=partial(self.open_popup, scatter))
         layout.add_widget(button2)
         button3 = Button(text='Text',
-                        pos_hint={'x':0.30,'y':0.65},
-                        size_hint=(None, None),
-                        size=(buttonsize, buttonsize),
-                        background_color=(1, 1, 1, 0),
-                        on_release=partial(self.new_label, scatter)) 
+                         pos_hint={'x': 0.30, 'y': 0.65},
+                         size_hint=(None, None),
+                         size=(buttonsize, buttonsize),
+                         background_color=(1, 1, 1, 0),
+                         on_release=partial(self.new_label, scatter))
         layout.add_widget(button3)
         button4 = Button(text='Smart-\nphone',
-                        pos_hint={'x':0.35,'y':0},
-                        size_hint=(None, None),
-                        size=(buttonsize, buttonsize),
-                        background_color=(1, 1, 1, 0),
-                        on_release=partial(self.qrcode, scatter))
+                         pos_hint={'x': 0.35, 'y': 0},
+                         size_hint=(None, None),
+                         size=(buttonsize, buttonsize),
+                         background_color=(1, 1, 1, 0),
+                         on_release=partial(self.qrcode, scatter))
         layout.add_widget(button4)
-        with button1.canvas.before: 
-            Color(1,1,1,0.2)
-            Ellipse(
-                size_hint=(None, None),
-                size=(circlesize, circlesize), 
-                angle_start=227,
-                angle_end=313
-                )
-        with button2.canvas.before: 
-            Color(1,1,1,0.2)
-            Ellipse(
-                size_hint=(None, None),
-                size=(circlesize, circlesize), 
-                angle_start=47,
-                angle_end=133
-                )
-        with button3.canvas.before: 
+        with button1.canvas.before:
             Color(1, 1, 1, 0.2)
-            Ellipse(
-                size_hint=(None, None),
-                size=(circlesize, circlesize),
-                angle_start=43,
-                angle_end=-43
-                )
+            Ellipse(size_hint=(None, None),
+                    size=(circlesize, circlesize),
+                    angle_start=227,
+                    angle_end=313)
+        with button2.canvas.before:
+            Color(1, 1, 1, 0.2)
+            Ellipse(size_hint=(None, None),
+                    size=(circlesize, circlesize),
+                    angle_start=47,
+                    angle_end=133)
+        with button3.canvas.before:
+            Color(1, 1, 1, 0.2)
+            Ellipse(size_hint=(None, None),
+                    size=(circlesize, circlesize),
+                    angle_start=43,
+                    angle_end=-43)
         with button4.canvas.before:
             Color(1, 1, 1, 0.2)
-            Ellipse(
-                size_hint=(None, None),
-                size=(circlesize, circlesize),
-                angle_start=137,
-                angle_end=223
-                )
-        if touch1 in self.parent.touches: 
+            Ellipse(size_hint=(None, None),
+                    size=(circlesize, circlesize),
+                    angle_start=137,
+                    angle_end=223)
+        if touch1 in self.parent.touches:
             self.parent.touches.remove(touch1)
-        if touch2 in self.parent.touches: 
+        if touch2 in self.parent.touches:
             self.parent.touches.remove(touch2)
 
         scatter.add_widget(layout)
@@ -168,78 +165,74 @@ class Menu(Widget):
         scatter.bind(on_touch_move=self.update_menu_rotation)
         scatter.bind(on_touch_up=self.enable_buttons)
 
-    # Method for showing the QR-Code (Smartphone) 
+    # Method for showing the QR-Code (Smartphone)
     def qrcode(self, widget, *args):
         callback = partial(self.close_menu, widget)
         Clock.schedule_once(callback, 0)
-        blayout = BoxLayout(
-            size_hint=(None, None), 
-            size=(200, 200),
-            orientation='vertical')
-        scatter = Scatter(
-            size_hint=(None, None),
-            size=(blayout.size[0], blayout.size[1]+20),
-            do_scale=True,
-            do_translation=True,
-            pos=(widget.pos[0],widget.pos[1])
-        )
+        blayout = BoxLayout(size_hint=(None, None),
+                            size=(200, 200),
+                            orientation='vertical')
+        scatter = Scatter(size_hint=(None, None),
+                          size=(blayout.size[0], blayout.size[1]+20),
+                          do_scale=True,
+                          do_translation=True,
+                          pos=(widget.pos[0], widget.pos[1]))
         self.compute_degree(scatter.center_x, scatter.center_y)
         scatter.rotation = self.degree
         wimg = Image(source='qr.png')
         btnok = Button(text='ok',
-                       size_hint=(None,None),
-                       size=(scatter.size[0],20),
+                       size_hint=(None, None),
+                       size=(scatter.size[0], 20),
                        on_press=partial(self.rmove2, scatter),
-                       pos=(scatter.pos[0], scatter.pos[1]-20)
-        )
+                       pos=(scatter.pos[0], scatter.pos[1]-20))
         blayout.add_widget(wimg)
         blayout.add_widget(btnok)
         scatter.add_widget(blayout)
         self.add_widget(scatter)
 
-    # Method for opening the Simple-Menu used in all Screens 
+    # Method for opening the Simple-Menu used in all Screens
     def open_simple_menu(self, touch1, touch2, *args):
         circlesize = 120
         buttonsize = 50
 
-        layout = FloatLayout(size_hint=(None,None), size=(circlesize,circlesize))
-        scatter = Scatter(size=layout.size, center=touch2.pos, do_scale=False, do_translation=False)
+        layout = FloatLayout(size_hint=(None, None),
+                             size=(circlesize, circlesize))
+        scatter = Scatter(size=layout.size,
+                          center=touch2.pos,
+                          do_scale=False,
+                          do_translation=False)
         self.compute_degree(scatter.center_x, scatter.center_y)
         scatter.rotation = self.degree
         button1 = Button(text='schliessen',
                          font_size=12,
-                        pos_hint={'x':0.05,'y':0.27},
-                        size_hint=(None, None),
-                        size=(buttonsize, buttonsize),
-                        background_color=(1, 1, 1, 0),
-                        on_release=partial(self.close_menu, scatter))
+                         pos_hint={'x': 0.05, 'y': 0.27},
+                         size_hint=(None, None),
+                         size=(buttonsize, buttonsize),
+                         background_color=(1, 1, 1, 0),
+                         on_release=partial(self.close_menu, scatter))
         layout.add_widget(button1)
         button2 = Button(text='weiter',
-                        pos_hint={'x':0.55, 'y':0.27},
-                        size_hint=(None,None),
-                        size=(buttonsize, buttonsize),
-                        background_color=(1,1,1,0),
-                        on_release=partial(self.open_popup, scatter))
+                         pos_hint={'x': 0.55, 'y': 0.27},
+                         size_hint=(None, None),
+                         size=(buttonsize, buttonsize),
+                         background_color=(1, 1, 1, 0),
+                         on_release=partial(self.open_popup, scatter))
         layout.add_widget(button2)
         with button1.canvas.before:
             Color(1, 1, 1, 0.2)
-            Ellipse(
-                size_hint=(None, None),
-                size=(circlesize, circlesize),
-                angle_start=2,
-                angle_end=178
-                )
+            Ellipse(size_hint=(None, None),
+                    size=(circlesize, circlesize),
+                    angle_start=2,
+                    angle_end=178)
         with button2.canvas.before:
             Color(1, 1, 1, 0.2)
-            Ellipse(
-                size_hint=(None, None),
-                size=(circlesize, circlesize),
-                angle_start=182,
-                angle_end=358
-                )
-        if touch1 in self.parent.touches: 
+            Ellipse(size_hint=(None, None),
+                    size=(circlesize, circlesize),
+                    angle_start=182,
+                    angle_end=358)
+        if touch1 in self.parent.touches:
             self.parent.touches.remove(touch1)
-        if touch2 in self.parent.touches: 
+        if touch2 in self.parent.touches:
             self.parent.touches.remove(touch2)
         scatter.add_widget(layout)
         self.add_widget(scatter)
@@ -251,30 +244,28 @@ class Menu(Widget):
         callback = partial(self.close_menu, widget)
         Clock.schedule_once(callback, 0)
 
-        blayout = BoxLayout(
-            size_hint=(None,None),
-            orientation='vertical',
-            size=(300, 300))
+        blayout = BoxLayout(size_hint=(None, None),
+                            orientation='vertical',
+                            size=(300, 300))
         with blayout.canvas.before:
             Color(1, 1, 1, 1)
-            Rectangle(
-                size_hint=(None,None),
-                size= blayout.size
-            )
-        scatter = Scatter(
-                        size_hint=(None,None),
-                        size=blayout.size, 
-                        center=self.parent.center,
-                        do_scale=True,
-                        do_translation=True,
-                        pos=((Window.width/2)-(blayout.size[0]/2), (Window.height/2)-(blayout.size[1]/2))
-                    )
+            Rectangle(size_hint=(None, None),
+                      size=blayout.size)
+        scatter = Scatter(size_hint=(None, None),
+                          size=blayout.size,
+                          center=self.parent.center,
+                          do_scale=True,
+                          do_translation=True,
+                          pos=((Window.width/2)-(blayout.size[0]/2),
+                               (Window.height/2)-(blayout.size[1]/2)))
         layout2 = BoxLayout(
             orientation='horizontal',
             size_hint=(None, None),
             size=(300, 30))
         if type(self.parent) is KJSort:
-            l = Label(text='[color=000000]Arbeitsergebnis exportieren?[/color]', size=blayout.size, markup=True)
+            l = Label(text='[color=000000]Arbeitsergebnis exportieren?[/color]',
+                      size=blayout.size,
+                      markup=True)
             btnJa = Button(text='Ja', size=blayout.size, on_press=partial(self.export_json, scatter))
             btnNein = Button(text='Nein', size=blayout.size, on_press=partial(self.restart, scatter))
         else:
